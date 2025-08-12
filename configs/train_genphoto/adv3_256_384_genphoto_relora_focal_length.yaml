@@ -1,20 +1,21 @@
-resume_from: "/weights/checkpoint-focal_length.ckpt"
+#resume_from: "/home/work/Hwang/Generative_Ph/generative_photography/weights/checkpoint-focal_length.ckpt"
+#resume_from: "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-07-16T10-00-11/checkpoints/checkpoint-step-96000.ckpt"
 
 output_dir: "output/genphoto_model_focal_length"
-pretrained_model_path: "/stable-diffusion-v1-5/"
+pretrained_model_path: "/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/"
 unet_subfolder: "unet_merged"
 
 train_data:
-  root_path:       "/camera_focal_length/"
+  root_path:       "/home/work/Hwang/Generative_Ph/camera_settings/camera_focal_length/"
   annotation_json:       "annotations/train.json"
-  sample_n_frames: 5
+  sample_n_frames: 3
   sample_size: [256, 384]
   is_Train: true
 
 validation_data:
-  root_path:       "/camera_dataset/camera_focal_length/"
+  root_path:       "/home/work/Hwang/Generative_Ph/camera_settings/camera_focal_length/"
   annotation_json:       "annotations/validation.json"
-  sample_n_frames: 5
+  sample_n_frames: 3
   sample_size: [256, 384]
   is_Train: false
 
@@ -36,8 +37,8 @@ unet_additional_kwargs:
 
 lora_rank: 2
 lora_scale: 1.0
-lora_ckpt: "/weights/RealEstate10K_LoRA.ckpt"
-motion_module_ckpt: "/weights/v3_sd15_mm.ckpt"
+lora_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/RealEstate10K_LoRA.ckpt"
+motion_module_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/v3_sd15_mm.ckpt"
 
 camera_encoder_kwargs:
   downscale_factor: 8
@@ -79,7 +80,7 @@ validation_steps_tuple: [1, ]
 learning_rate:    1.e-4
 
 num_workers: 8
-train_batch_size: 8
+train_batch_size: 4
 checkpointing_epochs: -1
 checkpointing_steps:  1000
 

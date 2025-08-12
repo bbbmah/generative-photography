@@ -350,10 +350,13 @@ def main(name: str,
         data_iter = iter(train_dataloader)
         for step in range(trained_iterations, len(train_dataloader)):
 
+            print(f"[STEP {step}] start") # 수정
             iter_start_time = time.time()
             batch = next(data_iter)
             data_end_time = time.time()
 
+            #수정
+            #print("test1")
 
             if cfg_random_null_text:
                 batch['text'] = [name if random.random() > cfg_random_null_text_ratio else "" for name in batch['text']]       
@@ -405,6 +408,12 @@ def main(name: str,
             # Mixed-precision training
             camera_embedding = batch["camera_embedding"].to(device=local_rank)  # [b, f, 6, h, w] 
             camera_embedding = rearrange(camera_embedding, "b f c h w -> b c f h w")  # [b, 6, f h, w]
+
+            #수정
+            #print("test")
+            #print(f"[DEBUG] noisy_latents shape: {noisy_latents.shape}")
+            #print(f"[DEBUG] encoder_hidden_states shape: {encoder_hidden_states.shape}")
+            #print(f"[DEBUG] camera_embedding shape: {camera_embedding.shape}")
 
             with torch.cuda.amp.autocast(enabled=mixed_precision_training):
                 model_pred = camera_adaptor(noisy_latents,

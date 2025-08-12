@@ -1,14 +1,14 @@
 output_dir: "inference_output/genphoto_focal_length"
-pretrained_model_path: "/stable-diffusion-v1-5/"
+pretrained_model_path: "/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/"
 unet_subfolder: "unet_merged"
 
-camera_adaptor_ckpt: "/weights/checkpoint-focal_length.ckpt"
-
+#camera_adaptor_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/checkpoint-focal_length.ckpt"
+camera_adaptor_ckpt: "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-07-16T16-12-30/checkpoints/checkpoint-step-2000.ckpt"
 
 lora_rank: 2
 lora_scale: 1.0
-lora_ckpt: "/weights/RealEstate10K_LoRA.ckpt"
-motion_module_ckpt: "/weights/v3_sd15_mm.ckpt"
+lora_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/RealEstate10K_LoRA.ckpt"
+motion_module_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/v3_sd15_mm.ckpt"
 motion_lora_rank: 0
 motion_lora_scale: 1.0
 

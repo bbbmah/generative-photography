@@ -61,6 +61,18 @@ class CameraAdaptor(nn.Module):
 
     def forward(self, noisy_latents, timesteps, encoder_hidden_states, camera_embedding):
         assert camera_embedding.ndim == 5
+
+        #수정
+        #h, w = noisy_latents.shape[-2:]
+        #b, c, f, h_orig, w_orig = camera_embedding.shape
+
+        # reshape → interpolate → reshape back
+        #camera_embedding = camera_embedding.permute(0, 2, 1, 3, 4).reshape(b * f, c, h_orig, w_orig)
+        #camera_embedding = nn.functional.interpolate(camera_embedding, size=(h, w), mode="bilinear", align_corners=False)
+        #camera_embedding = camera_embedding.reshape(b, f, c, h, w).permute(0, 2, 1, 3, 4)
+
+        #print(f"[DEBUG] resized camera_embedding shape: {camera_embedding.shape}")
+
         bs = camera_embedding.shape[0]            # b c f h w
         camera_embedding_features = self.camera_encoder(camera_embedding)      # bf c h w
         camera_embedding_features = [rearrange(x, '(b f) c h w -> b c f h w', b=bs)

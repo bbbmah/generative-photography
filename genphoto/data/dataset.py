@@ -15,7 +15,7 @@ from einops import rearrange
 from transformers import pipeline, CLIPTextModel, CLIPTokenizer
 
 import sys
-sys.path.append('/Generative_Photography/genphoto/data/BokehMe/')
+sys.path.append('/home/work/Hwang/Generative_Ph/generative-photography/genphoto/data/BokehMe/')
 from classical_renderer.scatter import ModuleRenderScatter  
 
 
@@ -81,8 +81,8 @@ class CameraShutterSpeed(Dataset):
                                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], inplace=True)]
 
         self.pixel_transforms = pixel_transforms
-        self.tokenizer = CLIPTokenizer.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="text_encoder")
+        self.tokenizer = CLIPTokenizer.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="tokenizer")
+        self.text_encoder = CLIPTextModel.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="text_encoder")
 
     def load_image_reader(self, idx):
         image_dict = self.dataset[idx]
@@ -312,11 +312,12 @@ class CameraFocalLength(Dataset):
 
         self.pixel_transforms = pixel_transforms
         self.is_Train = is_Train
-        self.tokenizer = CLIPTokenizer.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="text_encoder")
+        self.tokenizer = CLIPTokenizer.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="tokenizer")
+        self.text_encoder = CLIPTextModel.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="text_encoder")
 
 
     def load_image_reader(self, idx):
+        #print("image loader") #수정
         image_dict = self.dataset[idx]
 
         image_path = os.path.join(self.root_path, image_dict['base_image_path'])
@@ -338,6 +339,7 @@ class CameraFocalLength(Dataset):
 
 
     def get_batch(self, idx):
+        #print("get_batch") # 수정
         image_path, image_reader, image_caption, focal_length_values = self.load_image_reader(idx)
 
         total_frames = len(focal_length_values)
@@ -419,9 +421,12 @@ class CameraFocalLength(Dataset):
     def __getitem__(self, idx):
         while True:
             try:
+                #수정
+                #print("__getitem__")
                 video, video_caption, camera_embedding, focal_length_values = self.get_batch(idx)
                 break
             except Exception as e:
+                print(f"[EXCEPTION] in __getitem__ at idx={idx}: {repr(e)}") #수정
                 idx = random.randint(0, self.length - 1)
 
         for transform in self.pixel_transforms:
@@ -560,8 +565,8 @@ class CameraColorTemperature(Dataset):
                                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], inplace=True)]
 
         self.pixel_transforms = pixel_transforms
-        self.tokenizer = CLIPTokenizer.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="text_encoder")
+        self.tokenizer = CLIPTokenizer.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="tokenizer")
+        self.text_encoder = CLIPTextModel.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="text_encoder")
 
     def load_image_reader(self, idx):
         image_dict = self.dataset[idx]
@@ -799,8 +804,8 @@ class CameraBokehK(Dataset):
                                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5], inplace=True)]
 
         self.pixel_transforms = pixel_transforms
-        self.tokenizer = CLIPTokenizer.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained("/home/yuan418/data/project/stable-diffusion-v1-5/", subfolder="text_encoder")
+        self.tokenizer = CLIPTokenizer.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="tokenizer")
+        self.text_encoder = CLIPTextModel.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="text_encoder")
 
     def load_image_reader(self, idx):
         image_dict = self.dataset[idx]

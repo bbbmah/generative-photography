@@ -1,0 +1,19 @@
+# Core dependencies (for PyTorch 2.1.1 + CUDA 12.1)
+diffusers==0.24.0
+xformers==0.0.23  # Install with: pip install xformers==0.0.23 -f https://download.pytorch.org/whl/cu121
+imageio==2.36.0
+imageio[ffmpeg]
+opencv-python==4.7.0.72
+transformers==4.35.2
+huggingface_hub==0.20.3
+accelerate==0.24.1
+gdown
+einops
+decord
+omegaconf
+safetensors
+gradio==3.50.2
+wandb
+triton
+termcolor
+Pillow==9.1.0
