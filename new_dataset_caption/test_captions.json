@@ -1,0 +1,578 @@
+[
+    {
+        "base_image_path": [
+            "test/00007/00001.JPG",
+            "test/00007/00002.JPG",
+            "test/00007/00003.JPG",
+            "test/00007/00004.JPG",
+            "test/00007/00005.JPG",
+            "test/00007/00006.JPG",
+            "test/00007/00007.JPG"
+        ],
+        "caption": "A small office with a whiteboard on the wall, a desk with a computer, keyboard, and mouse, and two chairs. The office is dimly lit, and there is a trash can in the corner."
+    },
+    {
+        "base_image_path": [
+            "test/00038/00001.JPG",
+            "test/00038/00002.JPG",
+            "test/00038/00003.JPG",
+            "test/00038/00004.JPG",
+            "test/00038/00005.JPG",
+            "test/00038/00006.JPG",
+            "test/00038/00007.JPG"
+        ],
+        "caption": "A gray car is parked in front of a white garage door. The garage door is open, revealing a pile of trash on the ground. There are two other cars parked nearby, one on the left and another on the right. The scene is set on a street with a clear sky in the background."
+    },
+    {
+        "base_image_path": [
+            "test/00039/00001.JPG",
+            "test/00039/00002.JPG",
+            "test/00039/00003.JPG",
+            "test/00039/00004.JPG",
+            "test/00039/00005.JPG",
+            "test/00039/00006.JPG",
+            "test/00039/00007.JPG"
+        ],
+        "caption": "The image features a street with a fire hydrant on the sidewalk. There are multiple cars parked along the street, and a stop sign is visible in the distance. The sky above is cloudy, and the scene is set in a residential area."
+    },
+    {
+        "base_image_path": [
+            "test/00041/00001.JPG",
+            "test/00041/00002.JPG",
+            "test/00041/00003.JPG",
+            "test/00041/00004.JPG",
+            "test/00041/00005.JPG",
+            "test/00041/00006.JPG",
+            "test/00041/00007.JPG"
+        ],
+        "caption": "A white car is parked on the side of a street, next to a curb. The car is facing away from the camera. There are two other cars parked in the background, one on the left side and the other on the right side of the street. The sky is cloudy, and the street is empty."
+    },
+    {
+        "base_image_path": [
+            "test/00053/00001.JPG",
+            "test/00053/00002.JPG",
+            "test/00053/00003.JPG",
+            "test/00053/00004.JPG",
+            "test/00053/00005.JPG",
+            "test/00053/00006.JPG",
+            "test/00053/00007.JPG"
+        ],
+        "caption": "A sign advertising a BBQ event is posted in front of a red brick building. The sign is on a metal pole. The building is surrounded by green bushes. The sky is blue and cloudy."
+    },
+    {
+        "base_image_path": [
+            "test/00062/00001.JPG",
+            "test/00062/00002.JPG",
+            "test/00062/00003.JPG",
+            "test/00062/00004.JPG",
+            "test/00062/00005.JPG",
+            "test/00062/00006.JPG",
+            "test/00062/00007.JPG"
+        ],
+        "caption": "A city street with a large building in the background. The street is empty, and there are no cars on it. The sky is blue and cloudy."
+    },
+    {
+        "base_image_path": [
+            "test/00070/00001.JPG",
+            "test/00070/00002.JPG",
+            "test/00070/00003.JPG",
+            "test/00070/00004.JPG",
+            "test/00070/00005.JPG",
+            "test/00070/00006.JPG",
+            "test/00070/00007.JPG"
+        ],
+        "caption": "A brick sidewalk with a row of potted plants and benches. The sidewalk is in front of a building and is lined with several parked cars. The sky is blue with some clouds."
+    },
+    {
+        "base_image_path": [
+            "test/00077/00001.JPG",
+            "test/00077/00002.JPG",
+            "test/00077/00003.JPG",
+            "test/00077/00004.JPG",
+            "test/00077/00005.JPG",
+            "test/00077/00006.JPG",
+            "test/00077/00007.JPG"
+        ],
+        "caption": "A small store with a green awning and a white roof. The store has a green trash can outside. There are a few chairs in front of the store. The sky is cloudy."
+    },
+    {
+        "base_image_path": [
+            "test/00085/00001.JPG",
+            "test/00085/00002.JPG",
+            "test/00085/00003.JPG",
+            "test/00085/00004.JPG",
+            "test/00085/00005.JPG",
+            "test/00085/00006.JPG",
+            "test/00085/00007.JPG"
+        ],
+        "caption": "A sandwich shop with a brick patio and a tree in front. The shop has a white awning and a sign that says \"Great Sandwiches.\" There are two cars parked outside the shop."
+    },
+    {
+        "base_image_path": [
+            "test/00090/00001.JPG",
+            "test/00090/00002.JPG",
+            "test/00090/00003.JPG",
+            "test/00090/00004.JPG",
+            "test/00090/00005.JPG",
+            "test/00090/00006.JPG",
+            "test/00090/00007.JPG"
+        ],
+        "caption": "A large building with a red roof and white trim. The building has a covered walkway with a brick floor. The walkway is shaded by a large overhang. The building is surrounded by trees."
+    },
+    {
+        "base_image_path": [
+            "test/00091/00001.JPG",
+            "test/00091/00002.JPG",
+            "test/00091/00003.JPG",
+            "test/00091/00004.JPG",
+            "test/00091/00005.JPG",
+            "test/00091/00006.JPG",
+            "test/00091/00007.JPG"
+        ],
+        "caption": "A tree-covered courtyard with a bench under a canopy. The bench is made of wood and has a metal frame. The canopy is supported by wooden posts. The area is shaded by the tree and the canopy."
+    },
+    {
+        "base_image_path": [
+            "test/00098/00001.JPG",
+            "test/00098/00002.JPG",
+            "test/00098/00003.JPG",
+            "test/00098/00004.JPG",
+            "test/00098/00005.JPG",
+            "test/00098/00006.JPG",
+            "test/00098/00007.JPG"
+        ],
+        "caption": "A parking lot with a row of cars parked in it. The cars are parked in a straight line, and there is a white van parked in the lot as well. The parking lot is surrounded by trees, and the sky is visible above. The scene is captured in the middle of the day."
+    },
+    {
+        "base_image_path": [
+            "test/00101/00001.JPG",
+            "test/00101/00002.JPG",
+            "test/00101/00003.JPG",
+            "test/00101/00004.JPG",
+            "test/00101/00005.JPG",
+            "test/00101/00006.JPG",
+            "test/00101/00007.JPG"
+        ],
+        "caption": "A city street with a crosswalk, a car driving by, and a traffic light. The street is lined with outdoor dining tables and chairs, and there are umbrellas providing shade. The scene is bright and sunny, with a blue sky visible."
+    },
+    {
+        "base_image_path": [
+            "test/00127/00001.JPG",
+            "test/00127/00002.JPG",
+            "test/00127/00003.JPG",
+            "test/00127/00004.JPG",
+            "test/00127/00005.JPG",
+            "test/00127/00006.JPG",
+            "test/00127/00007.JPG"
+        ],
+        "caption": "A whiteboard with writing on it, surrounded by a bookshelf filled with books. The books are arranged in various sizes and colors. The whiteboard is located near a TV, and there is a person standing in the room. The room has a light-colored wall and a desk."
+    },
+    {
+        "base_image_path": [
+            "test/00131/00001.JPG",
+            "test/00131/00002.JPG",
+            "test/00131/00003.JPG",
+            "test/00131/00004.JPG",
+            "test/00131/00005.JPG",
+            "test/00131/00006.JPG",
+            "test/00131/00007.JPG"
+        ],
+        "caption": "A white desk with a picture of a fish on it, next to a large TV. The desk is in a room with a blue carpet."
+    },
+    {
+        "base_image_path": [
+            "test/00134/00001.JPG",
+            "test/00134/00002.JPG",
+            "test/00134/00003.JPG",
+            "test/00134/00004.JPG",
+            "test/00134/00005.JPG",
+            "test/00134/00006.JPG",
+            "test/00134/00007.JPG"
+        ],
+        "caption": "A white SUV is parked in front of a tan building. The building has a red door and a blue sign. There are two other cars parked nearby. The sky is blue and cloudless."
+    },
+    {
+        "base_image_path": [
+            "test/00135/00001.JPG",
+            "test/00135/00002.JPG",
+            "test/00135/00003.JPG",
+            "test/00135/00004.JPG",
+            "test/00135/00005.JPG",
+            "test/00135/00006.JPG",
+            "test/00135/00007.JPG"
+        ],
+        "caption": "A parking lot with several cars parked in a row. The cars are parked in front of a building. The sky is blue, and there is a traffic light visible."
+    },
+    {
+        "base_image_path": [
+            "test/00143/00001.JPG",
+            "test/00143/00002.JPG",
+            "test/00143/00003.JPG",
+            "test/00143/00004.JPG",
+            "test/00143/00005.JPG",
+            "test/00143/00006.JPG",
+            "test/00143/00007.JPG"
+        ],
+        "caption": "A kitchen with a wooden island and a brown floor. The island has a sink, a stove, and a counter. There is a potted plant on the counter, and a vase on the island. A chair is placed near the island. A cat is sitting on a box in the kitchen."
+    },
+    {
+        "base_image_path": [
+            "test/00153/00001.JPG",
+            "test/00153/00002.JPG",
+            "test/00153/00003.JPG",
+            "test/00153/00004.JPG",
+            "test/00153/00005.JPG",
+            "test/00153/00006.JPG",
+            "test/00153/00007.JPG"
+        ],
+        "caption": "A bedroom with a bed with a yellow Pokemon blanket and pillow. A window is open, letting in light. A bookshelf filled with books is in the background."
+    },
+    {
+        "base_image_path": [
+            "test/00158/00001.JPG",
+            "test/00158/00002.JPG",
+            "test/00158/00003.JPG",
+            "test/00158/00004.JPG",
+            "test/00158/00005.JPG",
+            "test/00158/00006.JPG",
+            "test/00158/00007.JPG"
+        ],
+        "caption": "A blue cart is driving down a street between two buildings. The street is empty, and the cart is the only vehicle visible. The buildings are made of brick and have a few windows. The scene is captured in black and white."
+    },
+    {
+        "base_image_path": [
+            "test/00163/00001.JPG",
+            "test/00163/00002.JPG",
+            "test/00163/00003.JPG",
+            "test/00163/00004.JPG",
+            "test/00163/00005.JPG",
+            "test/00163/00006.JPG",
+            "test/00163/00007.JPG"
+        ],
+        "caption": "A street scene with a sign on a sidewalk, a tree, and a crosswalk. The sign is orange and has the number 80 on it. The street is lined with buildings and cars parked along the side."
+    },
+    {
+        "base_image_path": [
+            "test/00167/00001.JPG",
+            "test/00167/00002.JPG",
+            "test/00167/00003.JPG",
+            "test/00167/00004.JPG",
+            "test/00167/00005.JPG",
+            "test/00167/00006.JPG",
+            "test/00167/00007.JPG"
+        ],
+        "caption": "A silver car is parked on the side of a street next to a pole. The car is parked in front of a building. There are other cars parked along the street as well. A stop sign is visible in the background. The street is lined with buildings and trees."
+    },
+    {
+        "base_image_path": [
+            "test/00169/00001.JPG",
+            "test/00169/00002.JPG",
+            "test/00169/00003.JPG",
+            "test/00169/00004.JPG",
+            "test/00169/00005.JPG",
+            "test/00169/00006.JPG",
+            "test/00169/00007.JPG"
+        ],
+        "caption": "A street scene with a stop sign, a fire hydrant, and a building. The stop sign is on the sidewalk, and the fire hydrant is on the side of the road. The building is white and has many windows. The street is lined with trees and bushes, and there is a car parked on the side of the road."
+    },
+    {
+        "base_image_path": [
+            "test/00174/00001.JPG",
+            "test/00174/00002.JPG",
+            "test/00174/00003.JPG",
+            "test/00174/00004.JPG",
+            "test/00174/00005.JPG",
+            "test/00174/00006.JPG",
+            "test/00174/00007.JPG"
+        ],
+        "caption": "A black car is parked on the side of the road next to a tree. The car is parked on the sidewalk, and there is a building in the background. The scene is well-lit, and the car is the main focus of the image."
+    },
+    {
+        "base_image_path": [
+            "test/00179/00001.JPG",
+            "test/00179/00002.JPG",
+            "test/00179/00003.JPG",
+            "test/00179/00004.JPG",
+            "test/00179/00005.JPG",
+            "test/00179/00006.JPG",
+            "test/00179/00007.JPG"
+        ],
+        "caption": "A city street with a sidewalk, a building under construction, and a street corner. The street is empty, and there are no people around. The building is under construction, and there is a crane in the background. The street is lined with trees and has a few traffic lights. The scene is captured on a cloudy day."
+    },
+    {
+        "base_image_path": [
+            "test/00182/00001.JPG",
+            "test/00182/00002.JPG",
+            "test/00182/00003.JPG",
+            "test/00182/00004.JPG",
+            "test/00182/00005.JPG",
+            "test/00182/00006.JPG",
+            "test/00182/00007.JPG"
+        ],
+        "caption": "A city street with a large building under construction. The street is empty, and there are no cars or people visible. The building is made of cinder blocks, and the street is lined with green bushes."
+    },
+    {
+        "base_image_path": [
+            "test/00186/00001.JPG",
+            "test/00186/00002.JPG",
+            "test/00186/00003.JPG",
+            "test/00186/00004.JPG",
+            "test/00186/00005.JPG",
+            "test/00186/00006.JPG",
+            "test/00186/00007.JPG"
+        ],
+        "caption": "A city street with a white car parked on the side. A tree is in the background. The street is empty, and there are no people around. The sky is overcast, and the lighting is dim."
+    },
+    {
+        "base_image_path": [
+            "test/00189/00001.JPG",
+            "test/00189/00002.JPG",
+            "test/00189/00003.JPG",
+            "test/00189/00004.JPG",
+            "test/00189/00005.JPG",
+            "test/00189/00006.JPG",
+            "test/00189/00007.JPG"
+        ],
+        "caption": "A large building under construction with scaffolding, a street light, and a sidewalk."
+    },
+    {
+        "base_image_path": [
+            "test/00192/00001.JPG",
+            "test/00192/00002.JPG",
+            "test/00192/00003.JPG",
+            "test/00192/00004.JPG",
+            "test/00192/00005.JPG",
+            "test/00192/00006.JPG",
+            "test/00192/00007.JPG"
+        ],
+        "caption": "A black SUV is parked on the side of a street in front of a building under construction. The street is empty and the sky is cloudy."
+    },
+    {
+        "base_image_path": [
+            "test/00226/00001.JPG",
+            "test/00226/00002.JPG",
+            "test/00226/00003.JPG",
+            "test/00226/00004.JPG",
+            "test/00226/00005.JPG",
+            "test/00226/00006.JPG",
+            "test/00226/00007.JPG"
+        ],
+        "caption": "A parking lot with a large billboard on a pole. The billboard has many signs on it. The parking lot is empty, and there are trees in the background. The sky is blue, and there are street lights in the area."
+    },
+    {
+        "base_image_path": [
+            "test/00232/00001.JPG",
+            "test/00232/00002.JPG",
+            "test/00232/00003.JPG",
+            "test/00232/00004.JPG",
+            "test/00232/00005.JPG",
+            "test/00232/00006.JPG",
+            "test/00232/00007.JPG"
+        ],
+        "caption": "A black car is parked in front of a garden center. The car is on the right side of the image. There are two potted plants visible in the scene, one near the center and the other on the left side. The sky is visible in the background, and the car is parked under a tree."
+    },
+    {
+        "base_image_path": [
+            "test/00245/00001.JPG",
+            "test/00245/00002.JPG",
+            "test/00245/00003.JPG",
+            "test/00245/00004.JPG",
+            "test/00245/00005.JPG",
+            "test/00245/00006.JPG",
+            "test/00245/00007.JPG"
+        ],
+        "caption": "A large parking lot with a restaurant in the background. The restaurant has a green roof and a flag on top. The lot is empty, and the sky is clear."
+    },
+    {
+        "base_image_path": [
+            "test/00247/00001.JPG",
+            "test/00247/00002.JPG",
+            "test/00247/00003.JPG",
+            "test/00247/00004.JPG",
+            "test/00247/00005.JPG",
+            "test/00247/00006.JPG",
+            "test/00247/00007.JPG"
+        ],
+        "caption": "A parking lot with cars parked in rows. A tree with green leaves is in the background. The sky is blue and clear."
+    },
+    {
+        "base_image_path": [
+            "test/00253/00001.JPG",
+            "test/00253/00002.JPG",
+            "test/00253/00003.JPG",
+            "test/00253/00004.JPG",
+            "test/00253/00005.JPG",
+            "test/00253/00006.JPG",
+            "test/00253/00007.JPG"
+        ],
+        "caption": "A parking lot with cars and a truck parked. The sky is blue, and there are trees in the background."
+    },
+    {
+        "base_image_path": [
+            "test/00261/00001.JPG",
+            "test/00261/00002.JPG",
+            "test/00261/00003.JPG",
+            "test/00261/00004.JPG",
+            "test/00261/00005.JPG",
+            "test/00261/00006.JPG",
+            "test/00261/00007.JPG"
+        ],
+        "caption": "A large gray metal box with a silver handle, located on a sidewalk next to a fence. The box is in front of a building."
+    },
+    {
+        "base_image_path": [
+            "test/00286/00001.JPG",
+            "test/00286/00002.JPG",
+            "test/00286/00003.JPG",
+            "test/00286/00004.JPG",
+            "test/00286/00005.JPG",
+            "test/00286/00006.JPG",
+            "test/00286/00007.JPG"
+        ],
+        "caption": "A large brick building with a yellow sign on the side. The building is surrounded by a parking lot with several cars parked. There is a bench in front of the building."
+    },
+    {
+        "base_image_path": [
+            "test/00288/00001.JPG",
+            "test/00288/00002.JPG",
+            "test/00288/00003.JPG",
+            "test/00288/00004.JPG",
+            "test/00288/00005.JPG",
+            "test/00288/00006.JPG",
+            "test/00288/00007.JPG"
+        ],
+        "caption": "A stop sign is located in front of a store. The store is a large building with a yellow and brown color scheme. There are several cars parked around the area, including one in front of the store and others on the side of the street. The scene is set on a sunny day, with the sun shining brightly on the cars and store."
+    },
+    {
+        "base_image_path": [
+            "test/00293/00001.JPG",
+            "test/00293/00002.JPG",
+            "test/00293/00003.JPG",
+            "test/00293/00004.JPG",
+            "test/00293/00005.JPG",
+            "test/00293/00006.JPG",
+            "test/00293/00007.JPG"
+        ],
+        "caption": "A parking lot with several cars parked in it. The cars are parked in a way that they are parallel to the curb. There are trees in the background, and the sun is shining. The lot is empty, with no people visible."
+    },
+    {
+        "base_image_path": [
+            "test/00323/00001.JPG",
+            "test/00323/00002.JPG",
+            "test/00323/00003.JPG",
+            "test/00323/00004.JPG",
+            "test/00323/00005.JPG",
+            "test/00323/00006.JPG",
+            "test/00323/00007.JPG"
+        ],
+        "caption": "A large room with a long table and multiple chairs. The table is surrounded by chairs on all sides. The room is well lit with overhead lighting. The chairs are arranged in rows, and the table is in the center of the room."
+    },
+    {
+        "base_image_path": [
+            "test/00332/00001.JPG",
+            "test/00332/00002.JPG",
+            "test/00332/00003.JPG",
+            "test/00332/00004.JPG",
+            "test/00332/00005.JPG",
+            "test/00332/00006.JPG",
+            "test/00332/00007.JPG"
+        ],
+        "caption": "A tree-lined city street with a white car parked on the side. The car is parked next to a tree and a lamp post. The street is empty, and the sun is shining."
+    },
+    {
+        "base_image_path": [
+            "test/00341/00001.JPG",
+            "test/00341/00002.JPG",
+            "test/00341/00003.JPG",
+            "test/00341/00004.JPG",
+            "test/00341/00005.JPG",
+            "test/00341/00006.JPG",
+            "test/00341/00007.JPG"
+        ],
+        "caption": "A street with a sidewalk, a car parked on the side, and a fence. The fence is adorned with greenery, and there is a tree in the background. The scene is set during the day, with the sun shining brightly."
+    },
+    {
+        "base_image_path": [
+            "test/00345/00001.JPG",
+            "test/00345/00002.JPG",
+            "test/00345/00003.JPG",
+            "test/00345/00004.JPG",
+            "test/00345/00005.JPG",
+            "test/00345/00006.JPG",
+            "test/00345/00007.JPG"
+        ],
+        "caption": "A row of cars parked on the side of a road, including a white van and a white car. The cars are parked in front of a tree and a bush. The scene is brightly lit, with sunlight shining on the cars and the surrounding area."
+    },
+    {
+        "base_image_path": [
+            "test/00349/00001.JPG",
+            "test/00349/00002.JPG",
+            "test/00349/00003.JPG",
+            "test/00349/00004.JPG",
+            "test/00349/00005.JPG",
+            "test/00349/00006.JPG",
+            "test/00349/00007.JPG"
+        ],
+        "caption": "A blue box on the sidewalk, next to a brick building, with a tree in the background."
+    },
+    {
+        "base_image_path": [
+            "test/00352/00001.JPG",
+            "test/00352/00002.JPG",
+            "test/00352/00003.JPG",
+            "test/00352/00004.JPG",
+            "test/00352/00005.JPG",
+            "test/00352/00006.JPG",
+            "test/00352/00007.JPG"
+        ],
+        "caption": "A Mercedes Benz parked on the street next to a building. The car is parked in front of a stop sign. There are other cars parked in the background, and a person is walking in the distance. The scene is set in a residential area with a tree in the background."
+    },
+    {
+        "base_image_path": [
+            "test/00360/00001.JPG",
+            "test/00360/00002.JPG",
+            "test/00360/00003.JPG",
+            "test/00360/00004.JPG",
+            "test/00360/00005.JPG",
+            "test/00360/00006.JPG",
+            "test/00360/00007.JPG"
+        ],
+        "caption": "A living room with a flat screen TV on the right side. A bookshelf with books and a teddy bear on top. A chair with a white sheep on it. The room is dimly lit."
+    },
+    {
+        "base_image_path": [
+            "test/00366/00001.JPG",
+            "test/00366/00002.JPG",
+            "test/00366/00003.JPG",
+            "test/00366/00004.JPG",
+            "test/00366/00005.JPG",
+            "test/00366/00006.JPG",
+            "test/00366/00007.JPG"
+        ],
+        "caption": "A bathroom with a sink, mirror, and a towel hanging on the wall. The light is on, illuminating the room."
+    },
+    {
+        "base_image_path": [
+            "test/00370/00001.JPG",
+            "test/00370/00002.JPG",
+            "test/00370/00003.JPG",
+            "test/00370/00004.JPG",
+            "test/00370/00005.JPG",
+            "test/00370/00006.JPG",
+            "test/00370/00007.JPG"
+        ],
+        "caption": "A bookshelf with books and a desk with a chair, a lamp, and a computer monitor. The bookshelf is black and has a lot of books on it. The desk is white and has a pink lamp on it. The chair is black and is positioned in front of the desk. The room has a window with blinds."
+    },
+    {
+        "base_image_path": [
+            "test/00434/00001.JPG",
+            "test/00434/00002.JPG",
+            "test/00434/00003.JPG",
+            "test/00434/00004.JPG",
+            "test/00434/00005.JPG",
+            "test/00434/00006.JPG",
+            "test/00434/00007.JPG"
+        ],
+        "caption": "A large city park with a paved road, grassy areas, and trees. A few people are walking on the sidewalk. The sky is cloudy, and there are buildings in the background."
+    }
+]
