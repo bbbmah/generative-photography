@@ -78,8 +78,8 @@ class Camera_Embedding(Dataset):
 
     def load(self):
 
-        if len(self.focal_length_values) != 5:
-            raise ValueError("Expected 5 focal_length values")
+        if len(self.focal_length_values) != 7:
+            raise ValueError("Expected 7 focal_length values")
 
         # Generate prompts for each focal length value and append focal_length information to caption
         prompts = []
@@ -206,7 +206,7 @@ def load_models(cfg):
     return pipeline, device
 
 
-def run_inference(pipeline, tokenizer, text_encoder, base_scene, focal_length_list, output_dir, device, video_length=5, height=256, width=384):
+def run_inference(pipeline, tokenizer, text_encoder, base_scene, focal_length_list, output_dir, device, video_length=7, height=256, width=384):
     os.makedirs(output_dir, exist_ok=True)
 
     focal_length_list_str = focal_length_list

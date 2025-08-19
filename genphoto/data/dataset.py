@@ -47,8 +47,6 @@ def create_shutter_speed_embedding(shutter_speed_values, target_height, target_w
     # Use scales to create the final shutter_speed embedding
     shutter_speed_embedding = scales      # Shape [f, 3, H, W]
     return shutter_speed_embedding
-
-
 def sensor_image_simulation_numpy(avg_PPP, photon_flux, fwc, Nbits, gain=1):
     min_val = 0
     max_val = 2 ** Nbits - 1
@@ -58,8 +56,6 @@ def sensor_image_simulation_numpy(avg_PPP, photon_flux, fwc, Nbits, gain=1):
     theta = np.clip(theta, min_val, max_val)
     theta = theta.astype(np.float32)
     return theta
-
-
 class CameraShutterSpeed(Dataset):
     def __init__(
             self,
@@ -205,44 +201,48 @@ class CameraShutterSpeed(Dataset):
 
 
 
+
+
 #### for focal length ####
-def crop_focal_length(image_path, base_focal_length, target_focal_length, target_height, target_width, sensor_height=24.0, sensor_width=36.0):
-    img = Image.open(image_path)
-    width, height = img.size
+# 아래 메서드는 삭제.
+# def crop_focal_length(image_path, base_focal_length, target_focal_length, target_height, target_width, sensor_height=24.0, sensor_width=36.0):
+#     img = Image.open(image_path)
+#     width, height = img.size
 
-    # Calculate base and target FOV
-    base_x_fov = 2.0 * math.atan(sensor_width * 0.5 / base_focal_length)
-    base_y_fov = 2.0 * math.atan(sensor_height * 0.5 / base_focal_length)
+#     # Calculate base and target FOV
+#     base_x_fov = 2.0 * math.atan(sensor_width * 0.5 / base_focal_length)
+#     base_y_fov = 2.0 * math.atan(sensor_height * 0.5 / base_focal_length)
 
-    target_x_fov = 2.0 * math.atan(sensor_width * 0.5 / target_focal_length)
-    target_y_fov = 2.0 * math.atan(sensor_height * 0.5 / target_focal_length)
+#     target_x_fov = 2.0 * math.atan(sensor_width * 0.5 / target_focal_length)
+#     target_y_fov = 2.0 * math.atan(sensor_height * 0.5 / target_focal_length)
 
-    # Calculate crop ratio, use the smaller ratio to maintain aspect ratio
-    crop_ratio = min(target_x_fov / base_x_fov, target_y_fov / base_y_fov)
+#     # Calculate crop ratio, use the smaller ratio to maintain aspect ratio
+#     crop_ratio = min(target_x_fov / base_x_fov, target_y_fov / base_y_fov)
 
-    crop_width = int(round(crop_ratio * width))
-    crop_height = int(round(crop_ratio * height))
+#     crop_width = int(round(crop_ratio * width))
+#     crop_height = int(round(crop_ratio * height))
 
-    # Ensure crop dimensions are within valid bounds
-    crop_width = max(1, min(width, crop_width))
-    crop_height = max(1, min(height, crop_height))
+#     # Ensure crop dimensions are within valid bounds
+#     crop_width = max(1, min(width, crop_width))
+#     crop_height = max(1, min(height, crop_height))
 
-    # Crop coordinates
-    left = int((width - crop_width) / 2)
-    top = int((height - crop_height) / 2)
-    right = int((width + crop_width) / 2)
-    bottom = int((height + crop_height) / 2)
+#     # Crop coordinates
+#     left = int((width - crop_width) / 2)
+#     top = int((height - crop_height) / 2)
+#     right = int((width + crop_width) / 2)
+#     bottom = int((height + crop_height) / 2)
 
-    # Crop the image
-    zoomed_img = img.crop((left, top, right, bottom))
+#     # Crop the image
+#     zoomed_img = img.crop((left, top, right, bottom))
 
-    # Resize the cropped image to target resolution
-    resized_img = zoomed_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+#     # Resize the cropped image to target resolution
+#     resized_img = zoomed_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
 
-    # Convert the PIL image to a numpy array
-    resized_img_np = np.array(resized_img).astype(np.float32)
+#     # Convert the PIL image to a numpy array
+#     resized_img_np = np.array(resized_img).astype(np.float32)
 
-    return resized_img_np
+#     return resized_img_np
+
 
 
 def create_focal_length_embedding(focal_length_values, base_focal_length, target_height, target_width, sensor_height=24.0, sensor_width=36.0):
@@ -297,9 +297,10 @@ class CameraFocalLength(Dataset):
             self,
             root_path,
             annotation_json,
-            sample_n_frames=5,
+            #sample_n_frames=5,
+            sample_n_frames=7, 
             sample_size=[256, 384],
-            is_Train=True,
+            is_Train=True, #인스턴스 생성부 유지를 위해 유지
     ):
         self.root_path = root_path
         self.sample_n_frames = sample_n_frames
@@ -317,29 +318,31 @@ class CameraFocalLength(Dataset):
 
 
     def load_image_reader(self, idx):
-        #print("image loader") #수정
+        print("[DEBUG] load_image_reader")
         image_dict = self.dataset[idx]
 
-        image_path = os.path.join(self.root_path, image_dict['base_image_path'])
-        image_reader = cv2.imread(image_path)
+        #image_path = os.path.join(self.root_path, image_dict['base_image_path'])
+        image_paths = [os.path.join(self.root.path, p) for p in image_dict['base_image_path']]
+        #image_reader = cv2.imread(image_path)
+        image_readers = [cv2.imread(p) for p in image_paths]
 
         image_caption = image_dict['caption']
 
-        if self.is_Train:
-            focal_length_values = [random.uniform(24.0, 70.0) for _ in range(self.sample_n_frames)]
-            print('train focal_length_values', focal_length_values)
-        else:
-            focal_length_list_str = image_dict['focal_length_list']
-            focal_length_values = json.loads(focal_length_list_str)
-            print('validation focal_length_values', focal_length_values)
+        # if self.is_Train:
+        #     focal_length_values = [random.uniform(24.0, 70.0) for _ in range(self.sample_n_frames)]
+        #     print('train focal_length_values', focal_length_values)
+        # else:
+        #     focal_length_list_str = image_dict['focal_length_list']
+        #     focal_length_values = json.loads(focal_length_list_str)
+        #     print('validation focal_length_values', focal_length_values)
+        # focal_length_values = torch.tensor(focal_length_values).unsqueeze(1)
+        focal_length_values = torch.tensor([24.0, 35.0, 50.0, 70.0, 100.0, 150.0, 240.0]).unsqueeze(1)
 
-        focal_length_values = torch.tensor(focal_length_values).unsqueeze(1)
-
-        return image_path, image_reader, image_caption, focal_length_values
+        return image_paths, image_readers, image_caption, focal_length_values
 
 
     def get_batch(self, idx):
-        #print("get_batch") # 수정
+        print("[DEBUG] get_batch")
         image_path, image_reader, image_caption, focal_length_values = self.load_image_reader(idx)
 
         total_frames = len(focal_length_values)
@@ -359,7 +362,7 @@ class CameraFocalLength(Dataset):
             ).input_ids
 
             encoder_hidden_states = self.text_encoder(input_ids=prompt_ids).last_hidden_state  # Shape: (f, sequence_length, hidden_size)
-        # print('encoder_hidden_states shape', encoder_hidden_states.shape)
+        print('encoder_hidden_states shape', encoder_hidden_states.shape)
 
         # Calculate differences between consecutive embeddings (ignoring sequence_length)
         differences = []
@@ -375,7 +378,7 @@ class CameraFocalLength(Dataset):
 
         # Concatenate differences along the batch dimension (f-1)
         concatenated_differences = torch.cat(differences, dim=0) 
-        # print('concatenated_differences shape', concatenated_differences.shape) # f 77 768
+        print('concatenated_differences shape', concatenated_differences.shape) # f 77 768
 
         frame = concatenated_differences.size(0)
 
@@ -393,25 +396,27 @@ class CameraFocalLength(Dataset):
 
         ccl_embedding = ccl_embedding.unsqueeze(1)  
         ccl_embedding = ccl_embedding.expand(-1, 3, -1, -1)
-        # print('ccl_embedding shape', ccl_embedding.shape)
+        print('ccl_embedding shape', ccl_embedding.shape)
 
         pixel_values = []
-        for ff in focal_length_values:
-            img_sim = crop_focal_length(image_path=image_path, base_focal_length=24.0, target_focal_length=ff, target_height=self.sample_size[0], target_width=self.sample_size[1], sensor_height=24.0, sensor_width=36.0)
+        # for ff in focal_length_values:
+        #     img_sim = crop_focal_length(image_path=image_path, base_focal_length=24.0, target_focal_length=ff, target_height=self.sample_size[0], target_width=self.sample_size[1], sensor_height=24.0, sensor_width=36.0)
       
-            pixel_values.append(img_sim)
-            # save_path = os.path.join(self.root_path, f"simulated_img_focal_length_{fl.item():.2f}.png")
-            # cv2.imwrite(save_path, img_sim)
-            # print(f"Saved image: {save_path}")
-
+        #     pixel_values.append(img_sim)
+        #     # save_path = os.path.join(self.root_path, f"simulated_img_focal_length_{fl.item():.2f}.png")
+        #     # cv2.imwrite(save_path, img_sim)
+        #     # print(f"Saved image: {save_path}")
+        pixel_values = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in image_reader]
         pixel_values = np.stack(pixel_values, axis=0)
         pixel_values = torch.from_numpy(pixel_values).permute(0, 3, 1, 2).contiguous() / 255.
+        
+        
 
         focal_length_embedding = create_focal_length_embedding(focal_length_values, base_focal_length=24.0, target_height=self.sample_size[0], target_width=self.sample_size[1])
-        # print('focal_length_embedding shape', focal_length_embedding.shape)
+        print('focal_length_embedding shape', focal_length_embedding.shape)
 
         camera_embedding = torch.cat((focal_length_embedding, ccl_embedding), dim=1) 
-        # print('camera_embedding shape', camera_embedding.shape)
+        print('camera_embedding shape', camera_embedding.shape)
 
         return pixel_values, image_caption, camera_embedding, focal_length_values
 
@@ -421,13 +426,12 @@ class CameraFocalLength(Dataset):
     def __getitem__(self, idx):
         while True:
             try:
-                #수정
-                #print("__getitem__")
                 video, video_caption, camera_embedding, focal_length_values = self.get_batch(idx)
                 break
             except Exception as e:
                 print(f"[EXCEPTION] in __getitem__ at idx={idx}: {repr(e)}") #수정
-                idx = random.randint(0, self.length - 1)
+                #idx = random.randint(0, self.length - 1)
+                break
 
         for transform in self.pixel_transforms:
             video = transform(video)
