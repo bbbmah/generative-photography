@@ -318,11 +318,11 @@ class CameraFocalLength(Dataset):
 
 
     def load_image_reader(self, idx):
-        print("[DEBUG] load_image_reader")
+        #print("[DEBUG] load_image_reader")
         image_dict = self.dataset[idx]
 
         #image_path = os.path.join(self.root_path, image_dict['base_image_path'])
-        image_paths = [os.path.join(self.root.path, p) for p in image_dict['base_image_path']]
+        image_paths = [os.path.join(self.root_path, p) for p in image_dict['base_image_path']]
         #image_reader = cv2.imread(image_path)
         image_readers = [cv2.imread(p) for p in image_paths]
 
@@ -336,13 +336,13 @@ class CameraFocalLength(Dataset):
         #     focal_length_values = json.loads(focal_length_list_str)
         #     print('validation focal_length_values', focal_length_values)
         # focal_length_values = torch.tensor(focal_length_values).unsqueeze(1)
-        focal_length_values = torch.tensor([24.0, 35.0, 50.0, 70.0, 100.0, 150.0, 240.0]).unsqueeze(1)
+        focal_length_values = torch.tensor([240.0, 150.0, 100.0, 70.0, 50.0, 35.0, 24.0]).unsqueeze(1)
 
         return image_paths, image_readers, image_caption, focal_length_values
 
 
     def get_batch(self, idx):
-        print("[DEBUG] get_batch")
+        #print("[DEBUG] get_batch")
         image_path, image_reader, image_caption, focal_length_values = self.load_image_reader(idx)
 
         total_frames = len(focal_length_values)
@@ -362,7 +362,7 @@ class CameraFocalLength(Dataset):
             ).input_ids
 
             encoder_hidden_states = self.text_encoder(input_ids=prompt_ids).last_hidden_state  # Shape: (f, sequence_length, hidden_size)
-        print('encoder_hidden_states shape', encoder_hidden_states.shape)
+        #print('encoder_hidden_states shape', encoder_hidden_states.shape)
 
         # Calculate differences between consecutive embeddings (ignoring sequence_length)
         differences = []
@@ -378,7 +378,7 @@ class CameraFocalLength(Dataset):
 
         # Concatenate differences along the batch dimension (f-1)
         concatenated_differences = torch.cat(differences, dim=0) 
-        print('concatenated_differences shape', concatenated_differences.shape) # f 77 768
+        #print('concatenated_differences shape', concatenated_differences.shape) # f 77 768
 
         frame = concatenated_differences.size(0)
 
@@ -396,7 +396,7 @@ class CameraFocalLength(Dataset):
 
         ccl_embedding = ccl_embedding.unsqueeze(1)  
         ccl_embedding = ccl_embedding.expand(-1, 3, -1, -1)
-        print('ccl_embedding shape', ccl_embedding.shape)
+        #print('ccl_embedding shape', ccl_embedding.shape)
 
         pixel_values = []
         # for ff in focal_length_values:
@@ -413,10 +413,10 @@ class CameraFocalLength(Dataset):
         
 
         focal_length_embedding = create_focal_length_embedding(focal_length_values, base_focal_length=24.0, target_height=self.sample_size[0], target_width=self.sample_size[1])
-        print('focal_length_embedding shape', focal_length_embedding.shape)
+        #print('focal_length_embedding shape', focal_length_embedding.shape)
 
         camera_embedding = torch.cat((focal_length_embedding, ccl_embedding), dim=1) 
-        print('camera_embedding shape', camera_embedding.shape)
+        #print('camera_embedding shape', camera_embedding.shape)
 
         return pixel_values, image_caption, camera_embedding, focal_length_values
 
@@ -437,6 +437,14 @@ class CameraFocalLength(Dataset):
             video = transform(video)
 
         sample = dict(pixel_values=video, text=video_caption, camera_embedding=camera_embedding, focal_length_values=focal_length_values)
+
+        print(
+            f"[DEBUG] idx={idx} "
+            f"pixel_values={sample['pixel_values'].shape} "
+            f"text={sample['text']} "
+            f"camera_embedding={sample['camera_embedding'].shape} "
+            f"focal_length_values={sample['focal_length_values'].view(-1).tolist()}"
+        )
 
         return sample
 
