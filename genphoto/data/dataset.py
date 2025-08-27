@@ -438,13 +438,13 @@ class CameraFocalLength(Dataset):
 
         sample = dict(pixel_values=video, text=video_caption, camera_embedding=camera_embedding, focal_length_values=focal_length_values)
 
-        print(
-            f"[DEBUG] idx={idx} "
-            f"pixel_values={sample['pixel_values'].shape} "
-            f"text={sample['text']} "
-            f"camera_embedding={sample['camera_embedding'].shape} "
-            f"focal_length_values={sample['focal_length_values'].view(-1).tolist()}"
-        )
+        # print(
+        #     f"[DEBUG] idx={idx} "
+        #     f"pixel_values={sample['pixel_values'].shape} "
+        #     f"text={sample['text']} "
+        #     f"camera_embedding={sample['camera_embedding'].shape} "
+        #     f"focal_length_values={sample['focal_length_values'].view(-1).tolist()}"
+        # )
 
         return sample
 

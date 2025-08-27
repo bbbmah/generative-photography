@@ -343,6 +343,21 @@ def main(name: str,
     # Support mixed-precision training
     scaler = torch.cuda.amp.GradScaler() if mixed_precision_training else None
 
+    # save checkpoint
+    def save_checkpoint(step: int):
+        save_path = os.path.join(output_dir, "checkpoints")
+        state_dict = {
+            "epoch": epoch,
+            "global_step": step,
+            "camera_encoder_state_dict": camera_adaptor.module.camera_encoder.state_dict(),
+            "attention_processor_state_dict": {
+                k: v for k, v in unet.state_dict().items() if k in attention_trainable_param_names
+            },
+            "optimizer_state_dict": optimizer.state_dict(),
+        }
+        torch.save(state_dict, os.path.join(save_path, f"checkpoint-step-{step}.ckpt"))
+        logger.info(f"Saved state to {save_path} (global_step: {step})")
+
     for epoch in range(first_epoch, num_train_epochs):
         train_dataloader.sampler.set_epoch(epoch)
         camera_adaptor.train()
@@ -457,17 +472,7 @@ def main(name: str,
 
             # Save checkpoint
             if is_main_process and (global_step % checkpointing_steps == 0):
-                save_path = os.path.join(output_dir, f"checkpoints")
-                state_dict = {
-                    "epoch": epoch,
-                    "global_step": global_step,
-                    "camera_encoder_state_dict": camera_adaptor.module.camera_encoder.state_dict(),
-                    "attention_processor_state_dict": {k: v for k, v in unet.state_dict().items()
-                                                       if k in attention_trainable_param_names},
-                    "optimizer_state_dict": optimizer.state_dict()
-                }
-                torch.save(state_dict, os.path.join(save_path, f"checkpoint-step-{global_step}.ckpt"))
-                logger.info(f"Saved state to {save_path} (global_step: {global_step})")
+                save_checkpoint(global_step)
 
             # Periodically validation
             if is_main_process and (
@@ -528,6 +533,8 @@ def main(name: str,
                 logger.info(msg)
 
             if global_step >= max_train_steps:
+                if is_main_process:
+                    save_checkpoint(global_step)
                 break
 
     dist.destroy_process_group()
