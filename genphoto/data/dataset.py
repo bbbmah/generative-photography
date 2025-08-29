@@ -326,6 +326,11 @@ class CameraFocalLength(Dataset):
         #image_reader = cv2.imread(image_path)
         image_readers = [cv2.imread(p) for p in image_paths]
 
+        # for DEBUG
+        for image in image_readers:
+            print(f"[DEBUG] 로드된 이미지 형태 (H, W, C): {image.shape}")
+            print(f"[DEBUG] 로드된 이미지 형식: {type(image)}")
+
         image_caption = image_dict['caption']
 
         # if self.is_Train:

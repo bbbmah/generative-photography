@@ -315,30 +315,61 @@ def main(name: str,
         logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
         logger.info(f"  Gradient Accumulation steps = {gradient_accumulation_steps}")
         logger.info(f"  Total optimization steps = {max_train_steps}")
+    # global_step = 0
+    # first_epoch = 0
+
+    # if resume_from is not None:
+    #     logger.info(f"Resuming the training from the checkpoint: {resume_from}")
+    #     ckpt = torch.load(resume_from, map_location=camera_adaptor.device)
+    #     global_step = ckpt['global_step']
+    #     trained_iterations = (global_step % len(train_dataloader))
+    #     first_epoch = int(global_step // len(train_dataloader))
+    #     # optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+    #     camera_encoder_state_dict = ckpt['camera_encoder_state_dict']
+    #     attention_processor_state_dict = ckpt['attention_processor_state_dict']
+    #     camera_enc_m, camera_enc_u = camera_adaptor.module.camera_encoder.load_state_dict(camera_encoder_state_dict, strict=False)
+    #     import pdb
+    #     pdb.set_trace()
+    #     assert len(camera_enc_m) == 0 and len(camera_enc_u) == 0
+    #     _, attention_processor_u = camera_adaptor.module.unet.load_state_dict(attention_processor_state_dict, strict=False)
+    #     assert len(attention_processor_u) == 0
+    #     logger.info(f"Loading the camera encoder and attention processor weights done.")
+    #     logger.info(f"Loading done, resuming training from the {global_step + 1}th iteration")
+    #     lr_scheduler.last_epoch = first_epoch
+    # else:
+    #     trained_iterations = 0
+
+    # for resuming training (추가)
     global_step = 0
     first_epoch = 0
-
+    trained_iterations = 0
     if resume_from is not None:
         logger.info(f"Resuming the training from the checkpoint: {resume_from}")
         ckpt = torch.load(resume_from, map_location=camera_adaptor.device)
         global_step = ckpt['global_step']
         trained_iterations = (global_step % len(train_dataloader))
         first_epoch = int(global_step // len(train_dataloader))
-        # optimizer.load_state_dict(ckpt['optimizer_state_dict'])
         camera_encoder_state_dict = ckpt['camera_encoder_state_dict']
         attention_processor_state_dict = ckpt['attention_processor_state_dict']
-        camera_enc_m, camera_enc_u = camera_adaptor.module.camera_encoder.load_state_dict(camera_encoder_state_dict, strict=False)
-        import pdb
-        pdb.set_trace()
+        camera_enc_m, camera_enc_u = camera_adaptor.module.camera_encoder.load_state_dict(
+            camera_encoder_state_dict, strict=False)
         assert len(camera_enc_m) == 0 and len(camera_enc_u) == 0
-        _, attention_processor_u = camera_adaptor.module.unet.load_state_dict(attention_processor_state_dict, strict=False)
+        _, attention_processor_u = camera_adaptor.module.unet.load_state_dict(
+            attention_processor_state_dict, strict=False)
         assert len(attention_processor_u) == 0
-        logger.info(f"Loading the camera encoder and attention processor weights done.")
-        logger.info(f"Loading done, resuming training from the {global_step + 1}th iteration")
-        lr_scheduler.last_epoch = first_epoch
-    else:
-        trained_iterations = 0
+        logger.info(
+            f"Loading the camera encoder and attention processor weights done.")
+        logger.info(
+            f"Loading done, resuming training from the {global_step + 1}th iteration")
+        max_train_steps += global_step
 
+    # 이어 학습하는 경우, 스케줄러 학습률 적용
+    if resume_from is not None:
+        lr_scheduler.step(global_step)
+
+    print(f"[DEBUG] first epoch: {first_epoch}")
+    print(f"[DEBUG] num_train_epochs: {num_train_epochs}")
+    print(f"[DEBUG] trained_iterations: {trained_iterations}")
 
     # Support mixed-precision training
     scaler = torch.cuda.amp.GradScaler() if mixed_precision_training else None
