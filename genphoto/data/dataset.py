@@ -3,6 +3,7 @@ import random
 import json
 import torch
 import math
+import rawpy
 import torch.nn as nn
 import torchvision.transforms as transforms
 import torch.nn.functional as F
@@ -301,6 +302,7 @@ class CameraFocalLength(Dataset):
             sample_n_frames=7, 
             sample_size=[256, 384],
             is_Train=True, #인스턴스 생성부 유지를 위해 유지
+            raw_process_params=None, #raw 파일 현상을 위한 파라미터
     ):
         self.root_path = root_path
         self.sample_n_frames = sample_n_frames
@@ -316,20 +318,39 @@ class CameraFocalLength(Dataset):
         self.tokenizer = CLIPTokenizer.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="tokenizer")
         self.text_encoder = CLIPTextModel.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="text_encoder")
 
+        # RAW 파일을 현상할 때 사용하는 기본 파라미터값
+        default_raw_params = {
+            'use_camera_wb': True,
+            'gamma': (1, 1),
+            'no_auto_bright': True,
+            'output_bps': 8,
+        }
+        self.raw_process_params = default_raw_params if raw_process_params is None else {**default_raw_params, **raw_process_params}
+
 
     def load_image_reader(self, idx):
-        #print("[DEBUG] load_image_reader")
         image_dict = self.dataset[idx]
-
-        #image_path = os.path.join(self.root_path, image_dict['base_image_path'])
         image_paths = [os.path.join(self.root_path, p) for p in image_dict['base_image_path']]
-        #image_reader = cv2.imread(image_path)
-        image_readers = [cv2.imread(p) for p in image_paths]
+        # image_readers = [cv2.imread(p) for p in image_paths] # for JPG format
+        
+        # for ARW format
+        image_readers = []
+        for i, p in enumerate(image_paths):
+            base, _ = os.path.splitext(p)
+            raw_path = base + '.ARW' # json 파일에는 경로.jpg로 annotation이 되어 있으니, 확장자를 따로 합침
+            if os.path.exists(raw_path): # ARW확장자 파일이 있으면 그것을 로드
+                image_paths[i] = raw_path
+                with rawpy.imread(raw_path) as raw:
+                    img = raw.postprocess(**self.raw_process_params)
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+            else: #ARW 파일이 없을 시, JPG파일을 이용
+                img = cv2.imread(p)
+            image_readers.append(img)
 
         # for DEBUG
-        for image in image_readers:
-            print(f"[DEBUG] 로드된 이미지 형태 (H, W, C): {image.shape}")
-            print(f"[DEBUG] 로드된 이미지 형식: {type(image)}")
+        for i, image in enumerate(image_readers):
+            print(f"[DEBUG] 로드된 {i}번째 이미지 형태 (H, W, C): {image.shape}")
+            print(f"[DEBUG] 로드된 {i}번째 이미지 형식: {type(image)}")
 
         image_caption = image_dict['caption']
 
