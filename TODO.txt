@@ -1,0 +1,1 @@
+inference_output, output 폴더의 내용은 NIPA1 열리면 가져오기

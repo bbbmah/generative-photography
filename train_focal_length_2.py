@@ -7,8 +7,6 @@ import inspect
 import argparse
 import datetime
 import subprocess
-import imageio
-import numpy as np
 
 from pathlib import Path
 from omegaconf import OmegaConf
@@ -27,7 +25,6 @@ from diffusers.models.attention_processor import AttnProcessor
 
 from transformers import CLIPTextModel, CLIPTokenizer
 from einops import rearrange
-from PIL import Image
 
 from genphoto.data.dataset import CameraFocalLength
 from genphoto.utils.util import setup_logger, format_time, save_videos_grid
@@ -35,33 +32,6 @@ from genphoto.pipelines.pipeline_animation import GenPhotoPipeline
 from genphoto.models.unet import UNet3DConditionModelCameraCond
 from genphoto.models.camera_adaptor import CameraCameraEncoder, CameraAdaptor
 from genphoto.models.attention_processor import AttnProcessor as CustomizedAttnProcessor
-
-
-try:
-    PIL_BILINEAR = Image.Resampling.BILINEAR  # type: ignore[attr-defined]
-except AttributeError:  # pragma: no cover - Pillow<9.1 compatibility
-    PIL_BILINEAR = Image.BILINEAR
-
-
-def build_validation_reference_frames(dataset: CameraFocalLength,
-                                      index: int,
-                                      target_size: Tuple[int, int]) -> np.ndarray:
-    """Load raw validation frames, resize, and return as an array ready for GIF saving."""
-    _, raw_frames_bgr, _, _ = dataset.load_image_reader(index)
-    target_height, target_width = (int(target_size[0]), int(target_size[1]))
-    processed_frames = []
-    for frame_bgr in raw_frames_bgr:
-        frame_rgb = frame_bgr[..., ::-1]
-        frame = Image.fromarray(frame_rgb)
-        if target_height is not None and target_width is not None:
-            frame = frame.resize((target_width, target_height), PIL_BILINEAR)
-        processed_frames.append(np.asarray(frame, dtype=np.uint8))
-    return np.stack(processed_frames, axis=0)
-
-
-def save_frames_as_gif(frames: np.ndarray, path: str, fps: int = 8) -> None:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    imageio.mimsave(path, list(frames), fps=fps)
 
 
 def init_dist(launcher="slurm", backend='nccl', port=29500, **kwargs):
@@ -580,23 +550,9 @@ def main(name: str,
                     save_videos_grid(sample[None, ...], sample_save_path)
                     logger.info(f"Saved generated sample to {sample_save_path}")
 
-                    # sample_reference = (validation_batch['pixel_values'][0].permute(1, 0, 2, 3) + 1.0) / 2.0  # [3, f, h, w]
-                    # save_videos_grid(sample_reference[None, ...], reference_save_path)
-                    # logger.info(f"Saved reference video to {reference_save_path}")
-                    try:
-                        reference_frames = build_validation_reference_frames(
-                            validation_dataset,
-                            idx,
-                            (height, width),
-                        )
-                        save_frames_as_gif(reference_frames, reference_save_path)
-                        logger.info(f"Saved reference video to {reference_save_path}")
-                    except Exception as exc:
-                        logger.warning(
-                            f"Failed to create raw reference GIF for index {idx}: {exc}. Falling back to processed frames."
-                        )
-                        sample_reference = (validation_batch['pixel_values'][0].permute(1, 0, 2, 3) + 1.0) / 2.0
-                        save_videos_grid(sample_reference[None, ...], reference_save_path)
+                    sample_reference = (validation_batch['pixel_values'][0].permute(1, 0, 2, 3) + 1.0) / 2.0  # [3, f, h, w]
+                    save_videos_grid(sample_reference[None, ...], reference_save_path)
+                    logger.info(f"Saved reference video to {reference_save_path}")
 
             if (global_step % logger_interval) == 0 or global_step == 0:
                 gpu_memory = torch.cuda.max_memory_allocated() / (1024 ** 3)

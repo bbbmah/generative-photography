@@ -348,9 +348,9 @@ class CameraFocalLength(Dataset):
             image_readers.append(img)
 
         # for DEBUG
-        for i, image in enumerate(image_readers):
-            print(f"[DEBUG] 로드된 {i}번째 이미지 형태 (H, W, C): {image.shape}")
-            print(f"[DEBUG] 로드된 {i}번째 이미지 형식: {type(image)}")
+        # for i, image in enumerate(image_readers):
+        #     print(f"[DEBUG] 로드된 {i}번째 이미지 형태 (H, W, C): {image.shape}")
+        #     print(f"[DEBUG] 로드된 {i}번째 이미지 형식: {type(image)}")
 
         image_caption = image_dict['caption']
 

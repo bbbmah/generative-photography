@@ -2,5 +2,4 @@ inference_output/
 output/
 __pycache__/
 test_captions_copy.json
-envset.sh
 new_dataset_caption/
