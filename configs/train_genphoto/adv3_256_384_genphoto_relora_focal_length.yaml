@@ -1,5 +1,6 @@
 #resume_from: "/home/work/Hwang/Generative_Ph/generative_photography/weights/checkpoint-focal_length.ckpt"
 #resume_from: "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-07-16T10-00-11/checkpoints/checkpoint-step-96000.ckpt"
+resume_from: "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-11-11T15-09-39/checkpoints/checkpoint-step-63231.ckpt"
 
 output_dir: "output/genphoto_model_focal_length"
 pretrained_model_path: "/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/"

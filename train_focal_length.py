@@ -307,13 +307,13 @@ def main(name: str,
         assert checkpointing_epochs != -1
         checkpointing_steps = checkpointing_epochs * len(train_dataloader)
 
-    # Scheduler
-    lr_scheduler = get_scheduler(
-        lr_scheduler,
-        optimizer=optimizer,
-        num_warmup_steps=lr_warmup_steps * gradient_accumulation_steps,
-        num_training_steps=max_train_steps * gradient_accumulation_steps,
-    )
+    # # Scheduler
+    # lr_scheduler = get_scheduler(
+    #     lr_scheduler,
+    #     optimizer=optimizer,
+    #     num_warmup_steps=lr_warmup_steps * gradient_accumulation_steps,
+    #     num_training_steps=max_train_steps * gradient_accumulation_steps,
+    # )
 
     # Validation pipeline
     validation_pipeline = GenPhotoPipeline(
@@ -331,20 +331,24 @@ def main(name: str,
 
     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / gradient_accumulation_steps)
-    # Afterwards we recalculate our number of training epochs
-    num_train_epochs = math.ceil(max_train_steps / num_update_steps_per_epoch)
+    # # Afterwards we recalculate our number of training epochs
+    # num_train_epochs = math.ceil(max_train_steps / num_update_steps_per_epoch)
+
+    # Track run level training schedule separately from any resumed progress.
+    train_steps_per_run = max_train_steps
+    target_total_train_steps = train_steps_per_run
 
     # Train!
     total_batch_size = train_batch_size * num_processes * gradient_accumulation_steps
 
-    if is_main_process:
-        logger.info("***** Running training *****")
-        logger.info(f"  Num examples = {len(train_dataset)}")
-        logger.info(f"  Num Epochs = {num_train_epochs}")
-        logger.info(f"  Instantaneous batch size per device = {train_batch_size}")
-        logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
-        logger.info(f"  Gradient Accumulation steps = {gradient_accumulation_steps}")
-        logger.info(f"  Total optimization steps = {max_train_steps}")
+    # if is_main_process:
+    #     logger.info("***** Running training *****")
+    #     logger.info(f"  Num examples = {len(train_dataset)}")
+    #     logger.info(f"  Num Epochs = {num_train_epochs}")
+    #     logger.info(f"  Instantaneous batch size per device = {train_batch_size}")
+    #     logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
+    #     logger.info(f"  Gradient Accumulation steps = {gradient_accumulation_steps}")
+    #     logger.info(f"  Total optimization steps = {max_train_steps}")
     # global_step = 0
     # first_epoch = 0
 
@@ -373,12 +377,18 @@ def main(name: str,
     global_step = 0
     first_epoch = 0
     trained_iterations = 0
+    resume_global_step = 0
     if resume_from is not None:
         logger.info(f"Resuming the training from the checkpoint: {resume_from}")
         ckpt = torch.load(resume_from, map_location=camera_adaptor.device)
         global_step = ckpt['global_step']
-        trained_iterations = (global_step % len(train_dataloader))
-        first_epoch = int(global_step // len(train_dataloader))
+        # trained_iterations = (global_step % len(train_dataloader))
+        # first_epoch = int(global_step // len(train_dataloader))
+
+        resume_global_step = global_step
+        trained_iterations = int(global_step % num_update_steps_per_epoch)
+        first_epoch = int(global_step // num_update_steps_per_epoch)
+
         camera_encoder_state_dict = ckpt['camera_encoder_state_dict']
         attention_processor_state_dict = ckpt['attention_processor_state_dict']
         camera_enc_m, camera_enc_u = camera_adaptor.module.camera_encoder.load_state_dict(
@@ -391,11 +401,40 @@ def main(name: str,
             f"Loading the camera encoder and attention processor weights done.")
         logger.info(
             f"Loading done, resuming training from the {global_step + 1}th iteration")
-        max_train_steps += global_step
+        # max_train_steps += global_step
+        target_total_train_steps = global_step + train_steps_per_run
+
+    if target_total_train_steps == 0:
+        logger.info("No training steps requested; exiting early.")
+        dist.destroy_process_group()
+        return
+
+    # Afterwards we recalculate our number of training epochs
+    num_train_epochs = math.ceil(target_total_train_steps / num_update_steps_per_epoch)
+
+    # Scheduler
+    lr_scheduler = get_scheduler(
+        lr_scheduler,
+        optimizer=optimizer,
+        num_warmup_steps=lr_warmup_steps * gradient_accumulation_steps,
+        num_training_steps=target_total_train_steps * gradient_accumulation_steps,
+    )
 
     # 이어 학습하는 경우, 스케줄러 학습률 적용
     if resume_from is not None:
         lr_scheduler.step(global_step)
+    
+    if is_main_process:
+        logger.info("***** Running training *****")
+        logger.info(f"  Num examples = {len(train_dataset)}")
+        logger.info(f"  Num Epochs = {num_train_epochs}")
+        logger.info(f"  Instantaneous batch size per device = {train_batch_size}")
+        logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
+        logger.info(f"  Gradient Accumulation steps = {gradient_accumulation_steps}")
+        if resume_from is not None:
+            logger.info(f"  Resumed global step = {resume_global_step}")
+        logger.info(f"  Target optimization steps = {target_total_train_steps}")
+
 
     print(f"[DEBUG] first epoch: {first_epoch}")
     print(f"[DEBUG] num_train_epochs: {num_train_epochs}")
@@ -405,10 +444,11 @@ def main(name: str,
     scaler = torch.cuda.amp.GradScaler() if mixed_precision_training else None
 
     # save checkpoint
-    def save_checkpoint(step: int):
+    def save_checkpoint(step: int, epoch_value: int):
         save_path = os.path.join(output_dir, "checkpoints")
         state_dict = {
-            "epoch": epoch,
+            #"epoch": epoch,
+            "epoch": epoch_value,
             "global_step": step,
             "camera_encoder_state_dict": camera_adaptor.module.camera_encoder.state_dict(),
             "attention_processor_state_dict": {
@@ -419,12 +459,17 @@ def main(name: str,
         torch.save(state_dict, os.path.join(save_path, f"checkpoint-step-{step}.ckpt"))
         logger.info(f"Saved state to {save_path} (global_step: {step})")
 
+    training_complete = False
+    last_epoch_value = first_epoch
     for epoch in range(first_epoch, num_train_epochs):
+        last_epoch_value = epoch
         train_dataloader.sampler.set_epoch(epoch)
         camera_adaptor.train()
 
         data_iter = iter(train_dataloader)
-        for step in range(trained_iterations, len(train_dataloader)):
+        #for step in range(trained_iterations, len(train_dataloader)):
+        start_step = trained_iterations if epoch == first_epoch else 0
+        for step in range(start_step, len(train_dataloader)):
 
             print(f"[STEP {step}] start") # 수정
             iter_start_time = time.time()
@@ -533,7 +578,8 @@ def main(name: str,
 
             # Save checkpoint
             if is_main_process and (global_step % checkpointing_steps == 0):
-                save_checkpoint(global_step)
+                # save_checkpoint(global_step)
+                save_checkpoint(global_step, epoch)
 
             # Periodically validation
             if is_main_process and (
@@ -600,18 +646,33 @@ def main(name: str,
 
             if (global_step % logger_interval) == 0 or global_step == 0:
                 gpu_memory = torch.cuda.max_memory_allocated() / (1024 ** 3)
-                msg = f"Iter: {global_step}/{max_train_steps}, Loss: {loss.detach().item(): .4f}, " \
+                # msg = f"Iter: {global_step}/{max_train_steps}, Loss: {loss.detach().item(): .4f}, " \
+                #       f"lr: {lr_scheduler.get_last_lr()}, Data time: {format_time(data_end_time - iter_start_time)}, " \
+                #       f"Iter time: {format_time(iter_end_time - data_end_time)}, " \
+                #       f"ETA: {format_time((iter_end_time - iter_start_time) * (max_train_steps - global_step))}, " \
+                #       f"GPU memory: {gpu_memory: .2f} G"
+                msg = f"Iter: {global_step}/{target_total_train_steps}, Loss: {loss.detach().item(): .4f}, " \
                       f"lr: {lr_scheduler.get_last_lr()}, Data time: {format_time(data_end_time - iter_start_time)}, " \
                       f"Iter time: {format_time(iter_end_time - data_end_time)}, " \
-                      f"ETA: {format_time((iter_end_time - iter_start_time) * (max_train_steps - global_step))}, " \
+                      f"ETA: {format_time((iter_end_time - iter_start_time) * (target_total_train_steps - global_step))}, " \
                       f"GPU memory: {gpu_memory: .2f} G"
                 logger.info(msg)
 
-            if global_step >= max_train_steps:
+            #if global_step >= max_train_steps:
+            if global_step >= target_total_train_steps:
                 if is_main_process:
-                    save_checkpoint(global_step)
+                    #save_checkpoint(global_step)
+                    save_checkpoint(global_step, epoch)
+                training_complete = True
                 break
+        trained_iterations = 0
+        if training_complete:
+            break
 
+    if is_main_process:
+        final_ckpt_path = os.path.join(output_dir, "checkpoints", f"checkpoint-step-{global_step}.ckpt")
+        if not os.path.exists(final_ckpt_path):
+            save_checkpoint(global_step, last_epoch_value)
     dist.destroy_process_group()
 
 

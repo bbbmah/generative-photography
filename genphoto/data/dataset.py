@@ -292,6 +292,76 @@ def create_focal_length_embedding(focal_length_values, base_focal_length, target
 
     return focal_length_embedding
 
+# 수정. 배럴 왜곡에 대한 임베딩 만드는 메서드.
+def create_barrel_distortion_embedding(
+        focal_length_values: torch.Tensor,
+        target_height: int,
+        target_width: int,
+        base_focal_length: float = 24.0,
+        distortion_gain: float = 0.35,
+) -> torch.Tensor:
+    """Create a simple barrel distortion embedding for each frame.
+
+    The implementation purposely exposes the *distortion profile* so it can be
+    tweaked later without having to inspect the whole function.  See the block
+    marked with "USER-EDITABLE DISTORTION CURVE" below – adjusting that portion
+    lets you experiment with different distortion behaviours while keeping the
+    rest of the plumbing intact.
+    """
+
+    device = focal_length_values.device
+    focal_length_values = focal_length_values.to(device=device, dtype=torch.float32)
+    yy, xx = torch.meshgrid(
+        torch.linspace(-1.0, 1.0, target_height, device=device),
+        torch.linspace(-1.0, 1.0, target_width, device=device),
+        indexing='ij'
+    )
+    radial_distance = torch.sqrt(xx ** 2 + yy ** 2).clamp_(max=1.0)
+
+    # --- USER-EDITABLE DISTORTION CURVE ------------------------------------
+    # The three lines below convert focal length values into a scalar that
+    # modulates how much barrel distortion we would like to embed.  Feel free
+    # to experiment with a different mapping (e.g. swap the polynomial with a
+    # lookup table, replace ``distortion_gain`` with a schedule, etc.) – as long
+    # as ``strength`` ends up with shape [frames, 1, 1], the rest of the code
+    # continues to work unchanged.
+    strength = (base_focal_length / focal_length_values).unsqueeze(-1).unsqueeze(-1)
+    strength = strength.clamp(min=0.0) * distortion_gain
+    curved_radius = radial_distance.unsqueeze(0) + strength * (radial_distance.unsqueeze(0) ** 3)
+    # -----------------------------------------------------------------------
+
+    sine_component = torch.sin(curved_radius * math.pi)
+    cosine_component = torch.cos(curved_radius * math.pi)
+    barrel_distortion_embedding = torch.stack(
+        (
+            curved_radius,
+            sine_component,
+            cosine_component,
+        ),
+        dim=1,
+    )
+
+    barrel_min = barrel_distortion_embedding.amin(dim=(2, 3), keepdim=True)
+    barrel_max = barrel_distortion_embedding.amax(dim=(2, 3), keepdim=True)
+    barrel_distortion_embedding = (barrel_distortion_embedding - barrel_min) / (barrel_max - barrel_min + 1e-6)
+
+    return barrel_distortion_embedding
+
+# 수정. 모델에 적용되는 카메라 임베딩의 채널차원 수 반환하는 메서
+def get_camera_embedding_channels(self) -> int:
+        if hasattr(self, "_camera_embedding_channels"):
+            return self._camera_embedding_channels
+
+        for probe_idx in range(self.length):
+            try:
+                with torch.no_grad():
+                    _, _, camera_embedding, _ = self.get_batch(probe_idx)
+                self._camera_embedding_channels = camera_embedding.shape[1]
+                return self._camera_embedding_channels
+            except Exception:
+                continue
+
+        raise RuntimeError("Unable to infer camera embedding channels from dataset samples.")
 
 class CameraFocalLength(Dataset):
     def __init__(
@@ -322,7 +392,7 @@ class CameraFocalLength(Dataset):
         default_raw_params = {
             'use_camera_wb': True,
             'gamma': (1, 1),
-            'no_auto_bright': True,
+            'no_auto_bright': False,
             'output_bps': 8,
         }
         self.raw_process_params = default_raw_params if raw_process_params is None else {**default_raw_params, **raw_process_params}
@@ -437,13 +507,32 @@ class CameraFocalLength(Dataset):
         pixel_values = torch.from_numpy(pixel_values).permute(0, 3, 1, 2).contiguous() / 255.
         
         
+        # 수정: 기존 임베딩 2개 concate 하는 것에 배럴 왜곡까지 concate ###
+        # focal_length_embedding = create_focal_length_embedding(focal_length_values, base_focal_length=24.0, target_height=self.sample_size[0], target_width=self.sample_size[1])
+        # #print('focal_length_embedding shape', focal_length_embedding.shape)
+        # camera_embedding = torch.cat((focal_length_embedding, ccl_embedding), dim=1) 
+        # #print('camera_embedding shape', camera_embedding.shape)
 
-        focal_length_embedding = create_focal_length_embedding(focal_length_values, base_focal_length=24.0, target_height=self.sample_size[0], target_width=self.sample_size[1])
-        #print('focal_length_embedding shape', focal_length_embedding.shape)
+        focal_length_embedding = create_focal_length_embedding(
+            focal_length_values,
+            base_focal_length=24.0,
+            target_height=self.sample_size[0],
+            target_width=self.sample_size[1],
+        )
 
-        camera_embedding = torch.cat((focal_length_embedding, ccl_embedding), dim=1) 
-        #print('camera_embedding shape', camera_embedding.shape)
+        barrel_distortion_embedding = create_barrel_distortion_embedding(
+            focal_length_values,
+            target_height=self.sample_size[0],
+            target_width=self.sample_size[1],
+        )
 
+        embeddings_to_concat = (
+            focal_length_embedding,
+            ccl_embedding,
+            barrel_distortion_embedding,
+        )
+        camera_embedding = torch.cat(embeddings_to_concat, dim=1)
+        #############################################################
         return pixel_values, image_caption, camera_embedding, focal_length_values
 
     def __len__(self):

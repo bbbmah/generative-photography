@@ -205,8 +205,8 @@ def load_models(cfg):
 
     return pipeline, device
 
-
-def run_inference(pipeline, tokenizer, text_encoder, base_scene, focal_length_list, output_dir, device, video_length=7, height=256, width=384):
+# 수정 sample1.gif 등으로 저장하기 위해 인덱스 값을 받도록 바꾸었다.
+def run_inference(pipeline, tokenizer, text_encoder, base_scene, focal_length_list, output_dir, device, index, video_length=7, height=256, width=384):
     os.makedirs(output_dir, exist_ok=True)
 
     focal_length_list_str = focal_length_list
@@ -227,8 +227,8 @@ def run_inference(pipeline, tokenizer, text_encoder, base_scene, focal_length_li
             num_inference_steps=25,
             guidance_scale=8.0
         ).videos[0]
-
-    sample_save_path = os.path.join(output_dir, "sample.gif")
+    # 수정 저장되는 파일에 번호 붙이도록 바꾸었다.     여기
+    sample_save_path = os.path.join(output_dir, f'sample{index}.gif')
     save_videos_grid(sample[None, ...], sample_save_path)
     logger.info(f"Saved generated sample to {sample_save_path}")
 
@@ -240,9 +240,39 @@ def main(config_path, base_scene, focal_length_list):
     pipeline, device = load_models(cfg)
     logger.info("Starting inference...")
 
-
-    run_inference(pipeline, pipeline.tokenizer, pipeline.text_encoder, base_scene, focal_length_list, cfg.output_dir, device=device)
-
+    #수정, 평가용 프롬프트를 목록화.
+    scene_list = [
+        "A silver truck in an empty parking lot. The truck is parked in front of a Men's Warehouse store. Multiple traffic lights are visible in the distance. The scene is set on a sunny day. Bright sunlight.",
+        "A row of cars in a tree-lined street. A black car and a red car are parked on the side of the road. A stop sign is visible in the background. The scene is set on a cloudy day. Soft, diffuse light.",
+        "A white car in a large parking lot. The car is parked near a curb. The parking lot is surrounded by trees. The sky is visible above. Clear, bright daylight.",
+        "A blue Nissan in a parking lot. The car is parked in a row, next to a blue parking sign. Trees surround the lot. The sky is clear in the background. Vivid daylight.",
+        "A silver car on the side of a street. The car is waiting at a red light. Other cars are parked nearby. A stop sign is visible. The scene is set on a sunny day with a clear blue sky. Crisp, clear light.",
+        "A white SUV on a street next to a tree. The street is lined with trees and buildings. The sky is visible. Soft daylight.",
+        "A black and white photo of a street with two cars. A brick building is on the corner with a sign on the sidewalk. A street light illuminates the area. Monochromatic, well-lit.",
+        "A white truck in a parking lot. The truck is parked next to a church, surrounded by a fence. A traffic cone is nearby. The sky is cloudy. Dim, overcast light.",
+        "A large building with a brown roof on a sidewalk. A black trash can is located nearby. The building is surrounded by trees. The sky is overcast. Muted natural light.",
+        "A large building with a sign on its side. The building is surrounded by a parking lot with a few cars. Trees are in the background. The scene is bright and sunny. Strong direct light.",
+        "A white building with many windows, surrounded by green bushes and trees. People are sitting on a bench in front of the building. Sunlight shines through the trees, creating shade. Pleasant natural light.",
+        "A large building with a palm tree in front. The street is empty, with a few cars parked along the side. The sky is blue with some clouds. Clear, bright light.",
+        "A large building with a restaurant sign. The building is surrounded by a parking lot with cars. A tree is in front, and a potted plant is on the sidewalk. The sky is blue and clear. Inviting atmosphere.",
+        "A white building with a brick facade and a large window. A white car is parked on the left side. The sky is visible in the background. Well-lit with natural light.",
+        "A white building with a black roof at the end of a street. The building is surrounded by trees. A large window is on its side. Soft natural light.",
+        "A large white building with many windows, surrounded by trees and greenery. Sunlight is shining on the building. Bright and sunny.",
+        "An office cubicle with a gray wall. A gray filing cabinet is present. A black computer monitor, keyboard, and mouse are on the desk. The cubicle is in a large office space with a white wall and a brown floor. Standard office lighting.",
+        "An office cubicle with a desk, chair, and computer. The cubicle is empty with a white tile wall. The office is dimly lit. Overhead lights.",
+        "A long hallway with a white printer on a desk. The printer is connected to a computer. The hallway is lined with cubicles with white walls, separated by partitions. The hallway is brightly lit. Overhead lights.",
+        "A large office cubicle with white walls, a white desk, and a whiteboard. The desk has a computer, keyboard, and mouse. Whiteboards and sticky notes cover the walls. Well-lit with overhead lights.",
+        "A kitchen with two stainless steel refrigerators and a sink. The refrigerators are placed next to each other. The kitchen is dimly lit. Cozy atmosphere.",
+        "A large, open office space with a white couch, a coffee table, and a television. The couch is positioned in the center. The television is mounted on the wall. A large window provides natural light. Well-lit with natural light.",
+        "A small office with a desk, chair, and computer monitor. The desk has a keyboard and mouse. A window is in the background. Dimly lit. Natural light from window.",
+        "A large flower pot with red flowers on a brick sidewalk. The pot is in front of a building. A bench is nearby. Brightly lit with sunlight."
+    ]
+    # 수정 추론시 run_inference 명령 하나만 하지만, for문으로 다 하도록 바꿈.
+    index = 1
+    for scene in scene_list:
+        #run_inference(pipeline, pipeline.tokenizer, pipeline.text_encoder, base_scene, focal_length_list, cfg.output_dir, device=device)
+        run_inference(pipeline, pipeline.tokenizer, pipeline.text_encoder, scene, focal_length_list, cfg.output_dir, device=device, index=index)
+        index=index+1
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
