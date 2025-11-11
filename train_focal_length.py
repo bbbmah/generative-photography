@@ -182,8 +182,39 @@ def main(name: str,
     vae = AutoencoderKL.from_pretrained(pretrained_model_path, subfolder="vae")
     tokenizer = CLIPTokenizer.from_pretrained(pretrained_model_path, subfolder="tokenizer")
     text_encoder = CLIPTextModel.from_pretrained(pretrained_model_path, subfolder="text_encoder")
-    unet = UNet3DConditionModelCameraCond.from_pretrained_2d(pretrained_model_path, subfolder=unet_subfolder,
-                                                           unet_additional_kwargs=unet_additional_kwargs)
+    unet = UNet3DConditionModelCameraCond.from_pretrained_2d(
+        pretrained_model_path,
+        subfolder=unet_subfolder,
+        unet_additional_kwargs=unet_additional_kwargs,
+    )
+    # 수정: train/validation 데이터셋의 카메라 임베딩 차원 채널 수가 맞는지 확인
+    logger.info('Building training datasets')
+    train_dataset = CameraFocalLength(**train_data)
+    logger.info('Building validation datasets')
+    validation_dataset = CameraFocalLength(**validation_data)
+
+    if camera_encoder_kwargs is None:
+        camera_encoder_kwargs = {}
+    elif not isinstance(camera_encoder_kwargs, dict):
+        camera_encoder_kwargs = dict(OmegaConf.to_container(camera_encoder_kwargs, resolve=True))
+    else:
+        camera_encoder_kwargs = dict(camera_encoder_kwargs)
+
+    embedding_channels = train_dataset.get_camera_embedding_channels()
+    validation_channels = validation_dataset.get_camera_embedding_channels()
+    if embedding_channels != validation_channels:
+        raise ValueError(
+            f"Training and validation datasets report different camera embedding channels "
+            f"({embedding_channels} vs {validation_channels})."
+        )
+
+    downscale_factor = camera_encoder_kwargs.get('downscale_factor', 1)
+    camera_encoder_kwargs['cin'] = embedding_channels * (downscale_factor ** 2)
+    if is_main_process:
+        logger.info(
+            f"Camera embedding channels: {embedding_channels} (downscale_factor={downscale_factor}, cin={camera_encoder_kwargs['cin']})"
+        )
+    ##############################################################################
     camera_encoder = CameraCameraEncoder(**camera_encoder_kwargs)
 
     # init attention processor
@@ -265,8 +296,8 @@ def main(name: str,
     text_encoder.to(local_rank)
 
     # Get the training dataset
-    logger.info(f'Building training datasets')
-    train_dataset = CameraFocalLength(**train_data)
+    #logger.info(f'Building training datasets')
+    #train_dataset = CameraFocalLength(**train_data)
     distributed_sampler = DistributedSampler(
         train_dataset,
         num_replicas=num_processes,
@@ -287,8 +318,8 @@ def main(name: str,
     )
 
     # Get the validation dataset
-    logger.info(f'Building validation datasets')
-    validation_dataset = CameraFocalLength(**validation_data)
+    #logger.info(f'Building validation datasets')
+    #validation_dataset = CameraFocalLength(**validation_data)
     validation_dataloader = torch.utils.data.DataLoader(
         validation_dataset,
         batch_size=1,
@@ -328,6 +359,49 @@ def main(name: str,
     # DDP wrapper
     camera_adaptor.to(local_rank)
     camera_adaptor = DDP(camera_adaptor, device_ids=[local_rank], output_device=local_rank)
+
+    # 수정: 가져오는 가중치의 채널 차원 수와 입력 데이터의 차원 수가 다를 때, 그것을 정렬해주는 메서드
+    def _align_camera_encoder_state_dict(state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        conv_key = 'encoder_conv_in.weight'
+        if conv_key not in state_dict:
+            return state_dict
+
+        stored_weight = state_dict[conv_key]
+        expected_weight = camera_adaptor.module.camera_encoder.encoder_conv_in.weight
+        expected_in_channels = expected_weight.shape[1]
+        stored_in_channels = stored_weight.shape[1]
+
+        if stored_in_channels == expected_in_channels:
+            return state_dict
+
+        if stored_in_channels > expected_in_channels:
+            state_dict[conv_key] = stored_weight[:, :expected_in_channels, ...]
+            if is_main_process:
+                logger.warning(
+                    "Loaded checkpoint camera encoder had more input channels (%d) than expected (%d); trimming extras.",
+                    stored_in_channels,
+                    expected_in_channels,
+                )
+        else:
+            pad_channels = expected_in_channels - stored_in_channels
+            pad = torch.zeros(
+                stored_weight.shape[0],
+                pad_channels,
+                stored_weight.shape[2],
+                stored_weight.shape[3],
+                dtype=stored_weight.dtype,
+                device=stored_weight.device,
+            )
+            state_dict[conv_key] = torch.cat([stored_weight, pad], dim=1)
+            if is_main_process:
+                logger.info(
+                    "Expanded camera encoder input channels from %d to %d using zero-initialised weights for the new embedding.",
+                    stored_in_channels,
+                    expected_in_channels,
+                )
+
+        return state_dict
+        ############################################################################3
 
     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
     num_update_steps_per_epoch = math.ceil(len(train_dataloader) / gradient_accumulation_steps)
@@ -388,8 +462,15 @@ def main(name: str,
         resume_global_step = global_step
         trained_iterations = int(global_step % num_update_steps_per_epoch)
         first_epoch = int(global_step // num_update_steps_per_epoch)
+        stored_embedding_channels = ckpt.get('camera_embedding_channels')
+        if stored_embedding_channels is not None and stored_embedding_channels != embedding_channels and is_main_process:
+            logger.info(
+                f"Checkpoint camera embedding channels ({stored_embedding_channels}) differ from current dataset ({embedding_channels}); adjusting weights."
+            )
 
-        camera_encoder_state_dict = ckpt['camera_encoder_state_dict']
+        camera_encoder_state_dict = _align_camera_encoder_state_dict(ckpt['camera_encoder_state_dict'])
+
+
         attention_processor_state_dict = ckpt['attention_processor_state_dict']
         camera_enc_m, camera_enc_u = camera_adaptor.module.camera_encoder.load_state_dict(
             camera_encoder_state_dict, strict=False)
@@ -455,6 +536,7 @@ def main(name: str,
                 k: v for k, v in unet.state_dict().items() if k in attention_trainable_param_names
             },
             "optimizer_state_dict": optimizer.state_dict(),
+            "camera_embedding_channels": embedding_channels,
         }
         torch.save(state_dict, os.path.join(save_path, f"checkpoint-step-{step}.ckpt"))
         logger.info(f"Saved state to {save_path} (global_step: {step})")
@@ -527,8 +609,8 @@ def main(name: str,
 
             # Predict the noise residual and compute loss
             # Mixed-precision training
-            camera_embedding = batch["camera_embedding"].to(device=local_rank)  # [b, f, 6, h, w] 
-            camera_embedding = rearrange(camera_embedding, "b f c h w -> b c f h w")  # [b, 6, f h, w]
+            camera_embedding = batch["camera_embedding"].to(device=local_rank)  # [b, f, C, h, w] 
+            camera_embedding = rearrange(camera_embedding, "b f c h w -> b c f h w")  # [b, C, f h, w]
 
             #수정
             #print("test")

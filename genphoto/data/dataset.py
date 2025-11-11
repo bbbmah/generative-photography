@@ -311,6 +311,13 @@ def create_barrel_distortion_embedding(
 
     device = focal_length_values.device
     focal_length_values = focal_length_values.to(device=device, dtype=torch.float32)
+    # ``focal_length_values`` may already contain a singleton channel dimension
+    # (e.g. shape [frames, 1]) depending on how the dataset prepared the
+    # metadata.  Flatten it here so the subsequent ``unsqueeze`` calls always
+    # yield [frames, 1, 1] instead of accidentally introducing an extra
+    # dimension (which would make the final embedding five-dimensional and
+    # break concatenation with the other camera features).
+    focal_length_values = focal_length_values.view(-1)
     yy, xx = torch.meshgrid(
         torch.linspace(-1.0, 1.0, target_height, device=device),
         torch.linspace(-1.0, 1.0, target_width, device=device),
@@ -347,21 +354,6 @@ def create_barrel_distortion_embedding(
 
     return barrel_distortion_embedding
 
-# 수정. 모델에 적용되는 카메라 임베딩의 채널차원 수 반환하는 메서
-def get_camera_embedding_channels(self) -> int:
-        if hasattr(self, "_camera_embedding_channels"):
-            return self._camera_embedding_channels
-
-        for probe_idx in range(self.length):
-            try:
-                with torch.no_grad():
-                    _, _, camera_embedding, _ = self.get_batch(probe_idx)
-                self._camera_embedding_channels = camera_embedding.shape[1]
-                return self._camera_embedding_channels
-            except Exception:
-                continue
-
-        raise RuntimeError("Unable to infer camera embedding channels from dataset samples.")
 
 class CameraFocalLength(Dataset):
     def __init__(
@@ -562,6 +554,24 @@ class CameraFocalLength(Dataset):
         # )
 
         return sample
+    
+    # 수정. 모델에 적용되는 카메라 임베딩의 채널차원 수 반환하는 메서
+    def get_camera_embedding_channels(self) -> int:
+            if hasattr(self, "_camera_embedding_channels"):
+                return self._camera_embedding_channels
+
+            for probe_idx in range(self.length):
+                print("for")
+                try:
+                    with torch.no_grad():
+                        _, _, camera_embedding, _ = self.get_batch(probe_idx)
+                    self._camera_embedding_channels = camera_embedding.shape[1]
+                    return self._camera_embedding_channels
+                except Exception as e:
+                    print(f"Error occurred while processing sample {probe_idx}: {e}")
+                    continue
+
+            raise RuntimeError("Unable to infer camera embedding channels from dataset samples.")
 
 
 

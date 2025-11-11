@@ -1,1 +1,3 @@
-inference_output, output 폴더의 내용은 NIPA1 열리면 가져오기
+inference 파일도 왜곡 임베딩 적용해서 추론하게 수정하기.
+왜곡 임베딩 구조 설계하기.
+평가지표 보기.
