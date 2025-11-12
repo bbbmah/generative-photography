@@ -1,37 +1,37 @@
 import json
 import csv
+import sys
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
 import numpy as np
 import torch
 from PIL import Image, ImageSequence
+
+ANYCALIB_PATH = "/home/work/Hwang/Calibration/AnyCalib"
+if str(ANYCALIB_PATH) not in sys.path:
+    sys.path.append(str(ANYCALIB_PATH))
+
 from anycalib import AnyCalib
 
-# =========================
-# 설정
-# =========================
+
 dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 사용할 모델 목록과 cam_id 매핑 (원본 코드 유지)
 MODEL_PLAN = [
     ("anycalib_pinhole", "pinhole"),
-    ("anycalib_gen", "simple_radial:4"),
-    ("anycalib_dist", "simple_radial:4"),
-    ("anycalib_edit", "simple_radial:4"),
+    ("anycalib_gen", "simple_radial:1"),
+    ("anycalib_dist", "simple_radial:1"),
+    ("anycalib_edit", "simple_radial:1"),
 ]
 
 out_root = Path("./anycalib_gif_results")
 out_root.mkdir(parents=True, exist_ok=True)
 
 
-# =========================
-# 유틸
-# =========================
+
 def pil_to_tensor(img: Image.Image, device: torch.device) -> torch.Tensor:
-    """
-    PIL.Image (RGB) -> (3,H,W) float32 in [0,1] Tensor
-    """
+    # RGB 이미지를 (3,H,W) 크기의 [0,1] 범위의 float32 텐서로 만든다.
     if img.mode != "RGB":
         img = img.convert("RGB")
     arr = np.asarray(img, dtype=np.float32) / 255.0  # (H,W,3)
@@ -40,9 +40,7 @@ def pil_to_tensor(img: Image.Image, device: torch.device) -> torch.Tensor:
 
 
 def extract_frames(gif_path: str) -> List[Image.Image]:
-    """
-    GIF에서 모든 프레임을 추출하여 RGB PIL 이미지 리스트로 반환
-    """
+    #gif에서 각 프레임 뽑아서 PIL 이미지로 만듬
     gif = Image.open(gif_path)
     frames = [frame.convert('RGB') for frame in ImageSequence.Iterator(gif)]
     return frames
@@ -54,13 +52,11 @@ def save_intrinsics_series_as_json_csv(
     stem: str,
     frame_names: Optional[List[str]] = None,
 ) -> None:
-    """
-    프레임별 intrinsics 시퀀스를 JSON/CSV로 저장
-    - series: List[frame_index -> List[param]]
-    - frame_names: 각 프레임의 식별자(예: f"{i:04d}")
-    """
-    out_dir.mkdir(parents=True, exist_ok=True)
+    # 프레임별 intrinsics 시퀀스를 JSON/CSV로 저장.
+    # series: List[frame_index -> List[param]]
+    # frame_names: 각 프레임의 식별자(예: f"{i:04d}")
 
+    out_dir.mkdir(parents=True, exist_ok=True)
     # JSON
     json_items = []
     for i, params in enumerate(series):
@@ -88,20 +84,17 @@ def save_intrinsics_series_as_json_csv(
     print(f"[SAVE] CSV  -> {csv_path}")
 
 
-# =========================
-# 2-1. 한 이미지의 왜곡 계수 계산
-# =========================
+# 단일 이미지의 왜곡 계수 계산하기
 @torch.inference_mode()
 def estimate_intrinsics_on_image(
     model: AnyCalib,
     cam_id: str,
     image: Image.Image,
 ) -> List[float]:
-    """
-    요구사항 2-1. 한 이미지의 왜곡 계수(= intrinsics) 계산
-    - 입력: PIL.Image (RGB)
-    - 출력: List[float] (모델이 반환하는 intrinsics 벡터)
-    """
+    # 한 이미지의 intrinsic 계산
+    # 입력: PIL.Image (RGB)
+    # 출력: List[float] (모델이 반환하는 intrinsics 벡터)
+
     img_t = pil_to_tensor(image, dev)  # (3,H,W), float32 [0,1]
     output = model.predict(img_t, cam_id=cam_id)
 
@@ -113,22 +106,19 @@ def estimate_intrinsics_on_image(
     return intr
 
 
-# =========================
-# 2-2. 한 GIF의 왜곡 계수 리스트 계산
-# =========================
+# 한 gif에 대한 intrincics 리스트 구하기
 def intrinsics_list_from_gif(
     gif_path: str,
     model_id: str = "anycalib_gen",
-    cam_id: str = "simple_radial:4",
+    cam_id: str = "simple_radial:1",
     save_dir: Optional[Path] = None,
 ) -> List[List[float]]:
-    """
-    요구사항 2-2. GIF → 프레임별 intrinsics 리스트
-    - model_id/cam_id로 AnyCalib을 내부에서 로드하여 사용
-    - 필요 시 JSON/CSV 저장
-    """
+    # gif → 프레임별 intrinsics 리스트
+    # model_id/cam_id로 AnyCalib을 내부에서 로드하여 사용
+    # 필요 시 json/csv 저장
+
     frames = extract_frames(gif_path)
-    model = AnyCalib(model_id=model_id).to(dev).eval()
+    model = AnyCalib(model_id=model_id).to(dev)
 
     series = []
     for i, frame in enumerate(frames):
@@ -144,58 +134,68 @@ def intrinsics_list_from_gif(
     return series
 
 
-# =========================
-# 2-3. 두 GIF의 왜곡 계수 리스트 비교
-# =========================
+# 두 gif의 intrinsic 리스트 비교하기
 def _l2_distance_same_len(a: List[float], b: List[float]) -> float:
-    """두 벡터의 공통 길이까지만 L2 거리 계산"""
-    m = min(len(a), len(b))
-    if m == 0:
+    # # 두 벡터 전체를 l2 방식으로 비교
+    # m = min(len(a), len(b))
+    # if m == 0:
+    #     return float("nan")
+    # va = np.array(a[:m], dtype=np.float64)
+    # vb = np.array(b[:m], dtype=np.float64)
+    # return float(np.linalg.norm(va - vb, ord=2))
+
+    # k값 (왜곡계수)만 비교시 아래 코드 이용.
+    # 두 벡터의 길이가 4 미만이면 비교 불가 (nan 반환)
+    if len(a) < 4 or len(b) < 4:
         return float("nan")
-    va = np.array(a[:m], dtype=np.float64)
-    vb = np.array(b[:m], dtype=np.float64)
-    return float(np.linalg.norm(va - vb, ord=2))
+    
+    # 4번째 원소 (인덱스 3)만 추출
+    val_a = a[3]
+    val_b = b[3]
+    
+    # k값의 l1 차이 계산 후 반환
+    return abs(val_a - val_b)
 
 
-def _componentwise_pearson(
-    seq1: List[List[float]],
-    seq2: List[List[float]],
-) -> Tuple[List[float], List[int]]:
-    """
-    파라미터 차원별(공통 차원까지만) 프레임 축 방향 피어슨 상관계수 계산
-    - 반환: (corr_list, valid_counts) 각 차원별 유효 프레임 수
-    """
-    n_frames = min(len(seq1), len(seq2))
-    if n_frames == 0:
-        return [], []
+# def _componentwise_pearson(
+#     seq1: List[List[float]],
+#     seq2: List[List[float]],
+# ) -> Tuple[List[float], List[int]]:
+#     
+#     # 파라미터 차원별(공통 차원까지만) 프레임 축 방향 피어슨 상관계수 계산
+#     # 반환: (corr_list, valid_counts) 각 차원별 유효 프레임 수
+#    
+#     n_frames = min(len(seq1), len(seq2))
+#     if n_frames == 0:
+#         return [], []
 
-    dim = min(
-        max(len(v) for v in seq1 if v),
-        max(len(v) for v in seq2 if v),
-    )
+#     dim = min(
+#         max(len(v) for v in seq1 if v),
+#         max(len(v) for v in seq2 if v),
+#     )
 
-    corr_list = []
-    valid_counts = []
-    for d in range(dim):
-        a = []
-        b = []
-        for t in range(n_frames):
-            if len(seq1[t]) > d and len(seq2[t]) > d:
-                a.append(seq1[t][d])
-                b.append(seq2[t][d])
+#     corr_list = []
+#     valid_counts = []
+#     for d in range(dim):
+#         a = []
+#         b = []
+#         for t in range(n_frames):
+#             if len(seq1[t]) > d and len(seq2[t]) > d:
+#                 a.append(seq1[t][d])
+#                 b.append(seq2[t][d])
 
-        if len(a) >= 2 and len(b) >= 2:
-            c = float(np.corrcoef(a, b)[0, 1])
-            corr_list.append(c)
-            valid_counts.append(len(a))
-        else:
-            corr_list.append(float("nan"))
-            valid_counts.append(len(a))
-    return corr_list, valid_counts
+#         if len(a) >= 2 and len(b) >= 2:
+#             c = float(np.corrcoef(a, b)[0, 1])
+#             corr_list.append(c)
+#             valid_counts.append(len(a))
+#         else:
+#             corr_list.append(float("nan"))
+#             valid_counts.append(len(a))
+#     return corr_list, valid_counts
 
 
 def _l2_norm_series(seq: List[List[float]]) -> List[float]:
-    """각 프레임 벡터의 공통 길이 기준 L2 norm 시퀀스(시퀀스 간 비교용)"""
+    # 각 프레임 벡터의 공통 길이 기준 L2 norm 시퀀스(시퀀스 간 비교용)
     dim = max((len(v) for v in seq if v), default=0)
     # 다른 리스트와 맞출 때는 외부에서 min-dim을 적용함
     norms = []
@@ -214,19 +214,19 @@ def compare_intrinsics_lists(
     *,
     per_frame_metric: str = "l2",  # "l2" 또는 "l1" 확장 가능
 ) -> Dict:
-    """
-    요구사항 2-3. 두 GIF의 intrinsics 리스트 비교
-    결과:
-      - frame_errors: 프레임 인덱스별 오차(기본 L2). 길이는 min(len(seq1), len(seq2))
-      - component_corrs: 파라미터 차원별 피어슨 r (공통 차원까지만)
-      - l2norm_trend_corr: 프레임별 L2-norm 시퀀스 간 상관계수(추가 요약 지표)
-    """
+    # 두 GIF의 intrinsics 리스트 비교
+    #결과:
+    #  - frame_errors: 프레임 인덱스별 오차(기본 L2). 길이는 min(len(seq1), len(seq2))
+    #  - component_corrs: 파라미터 차원별 피어슨 r (공통 차원까지만)
+    #  - l2norm_trend_corr: 프레임별 L2-norm 시퀀스 간 상관계수(추가 요약 지표)
+    
+    # 1. 프레임별 l2 에러 구하기
     n = min(len(seq1), len(seq2))
     frame_errors = []
     for i in range(n):
         if per_frame_metric == "l2":
             e = _l2_distance_same_len(seq1[i], seq2[i])
-        else:  # 간단 확장: L1
+        else:  # intrinsic 요소별 l1 비교
             m = min(len(seq1[i]), len(seq2[i]))
             if m == 0:
                 e = float("nan")
@@ -236,55 +236,53 @@ def compare_intrinsics_lists(
                 e = float(np.linalg.norm(va - vb, ord=1))
         frame_errors.append(e)
 
-    component_corrs, valid_counts = _componentwise_pearson(seq1, seq2)
+    # component_corrs, valid_counts = _componentwise_pearson(seq1, seq2)
 
-    # 요약: L2-norm 시퀀스의 상관계수(프레임별 크기 경향 비교)
-    # 공통 파라미터 차원을 보장하기 위해 다시 한 번 min-dim을 적용
-    dim1 = max((len(v) for v in seq1 if v), default=0)
-    dim2 = max((len(v) for v in seq2 if v), default=0)
-    common_dim = min(dim1, dim2)
+    # # 요약: L2-norm 시퀀스의 상관계수(프레임별 크기 경향 비교)
+    # # 공통 파라미터 차원을 보장하기 위해 다시 한 번 min-dim을 적용
+    # dim1 = max((len(v) for v in seq1 if v), default=0)
+    # dim2 = max((len(v) for v in seq2 if v), default=0)
+    # common_dim = min(dim1, dim2)
 
-    def l2_series_with_dim(seq, d):
-        out = []
-        for v in seq[:n]:
-            m = min(len(v), d)
-            if m == 0:
-                out.append(float("nan"))
-            else:
-                out.append(float(np.linalg.norm(np.array(v[:m], dtype=np.float64), ord=2)))
-        return out
+    # def l2_series_with_dim(seq, d):
+    #     out = []
+    #     for v in seq[:n]:
+    #         m = min(len(v), d)
+    #         if m == 0:
+    #             out.append(float("nan"))
+    #         else:
+    #             out.append(float(np.linalg.norm(np.array(v[:m], dtype=np.float64), ord=2)))
+    #     return out
 
-    l2_1 = l2_series_with_dim(seq1, common_dim)
-    l2_2 = l2_series_with_dim(seq2, common_dim)
-    # NaN 제거
-    mask = [np.isfinite(a) and np.isfinite(b) for a, b in zip(l2_1, l2_2)]
-    l2_1v = np.array([a for a, m in zip(l2_1, mask) if m], dtype=np.float64)
-    l2_2v = np.array([b for b, m in zip(l2_2, mask) if m], dtype=np.float64)
-    if len(l2_1v) >= 2 and len(l2_2v) >= 2:
-        l2norm_trend_corr = float(np.corrcoef(l2_1v, l2_2v)[0, 1])
-    else:
-        l2norm_trend_corr = float("nan")
+    # l2_1 = l2_series_with_dim(seq1, common_dim)
+    # l2_2 = l2_series_with_dim(seq2, common_dim)
+    # # NaN 제거
+    # mask = [np.isfinite(a) and np.isfinite(b) for a, b in zip(l2_1, l2_2)]
+    # l2_1v = np.array([a for a, m in zip(l2_1, mask) if m], dtype=np.float64)
+    # l2_2v = np.array([b for b, m in zip(l2_2, mask) if m], dtype=np.float64)
+    # if len(l2_1v) >= 2 and len(l2_2v) >= 2:
+    #     l2norm_trend_corr = float(np.corrcoef(l2_1v, l2_2v)[0, 1])
+    # else:
+    #     l2norm_trend_corr = float("nan")
 
     return {
         "num_frames_compared": n,
         "frame_errors": frame_errors,           # 4-1 요구사항
-        "component_corrs": component_corrs,     # 4-2 요구사항(차원별)
-        "component_valid_counts": valid_counts, # 각 차원의 유효 프레임 수
-        "l2norm_trend_corr": l2norm_trend_corr # 경향성 요약
+        # "component_corrs": component_corrs,     # 4-2 요구사항(차원별)
+        # "component_valid_counts": valid_counts, # 각 차원의 유효 프레임 수
+        # "l2norm_trend_corr": l2norm_trend_corr # 경향성 요약
     }
 
 
-# =========================
-# 예시 실행부
-# =========================
+# 예시
 if __name__ == "__main__":
     # 예시 입력
-    gif_a = "/path/to/A_reference.gif"
-    gif_b = "/path/to/A_sample.gif"
+    gif_a = "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-11-11T18-56-25/samples/sample-63399/0_sample.gif"
+    gif_b = "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-11-11T18-56-25/samples/sample-63399/1_sample.gif"
 
-    # 1) 단일 모델로 실행 (원한다면 MODEL_PLAN에서 골라 사용)
+    # 1) 단일 모델로 실행
     model_id = "anycalib_gen"
-    cam_id = "simple_radial:4"
+    cam_id = "simple_radial:1"
 
     # 2) 각 GIF에 대해 프레임별 intrinsics 시퀀스 추출 및 저장
     seq_a = intrinsics_list_from_gif(
