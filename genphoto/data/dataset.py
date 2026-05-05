@@ -331,21 +331,21 @@ class CameraFocalLength(Dataset):
     def load_image_reader(self, idx):
         image_dict = self.dataset[idx]
         image_paths = [os.path.join(self.root_path, p) for p in image_dict['base_image_path']]
-        # image_readers = [cv2.imread(p) for p in image_paths] # for JPG format
+        image_readers = [cv2.imread(p) for p in image_paths] # for JPG format
         
         # for ARW format
-        image_readers = []
-        for i, p in enumerate(image_paths):
-            base, _ = os.path.splitext(p)
-            raw_path = base + '.ARW' # json 파일에는 경로.jpg로 annotation이 되어 있으니, 확장자를 따로 합침
-            if os.path.exists(raw_path): # ARW확장자 파일이 있으면 그것을 로드
-                image_paths[i] = raw_path
-                with rawpy.imread(raw_path) as raw:
-                    img = raw.postprocess(**self.raw_process_params)
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-            else: #ARW 파일이 없을 시, JPG파일을 이용
-                img = cv2.imread(p)
-            image_readers.append(img)
+        # image_readers = []
+        # for i, p in enumerate(image_paths):
+        #     base, _ = os.path.splitext(p)
+        #     raw_path = base + '.ARW' # json 파일에는 경로.jpg로 annotation이 되어 있으니, 확장자를 따로 합침
+        #     if os.path.exists(raw_path): # ARW확장자 파일이 있으면 그것을 로드
+        #         image_paths[i] = raw_path
+        #         with rawpy.imread(raw_path) as raw:
+        #             img = raw.postprocess(**self.raw_process_params)
+        #         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        #     else: #ARW 파일이 없을 시, JPG파일을 이용
+        #         img = cv2.imread(p)
+        #     image_readers.append(img)
 
         # for DEBUG
         # for i, image in enumerate(image_readers):
