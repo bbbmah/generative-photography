@@ -1,14 +1,17 @@
-output_dir: "inference_output/genphoto_focal_length"
-pretrained_model_path: "/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/"
+output_dir: "inference_output/Genphoto_496_more_Focal_variable"
+pretrained_model_path: "/data/songhune/mario340/generative-photography/generative_photography/stable-diffusion-v1-5"
 unet_subfolder: "unet_merged"
 
-#camera_adaptor_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/checkpoint-focal_length.ckpt"
-#camera_adaptor_ckpt: "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-08-30T01-20-23/checkpoints/checkpoint-step-231.ckpt"
-camera_adaptor_ckpt: "/home/work/Hwang/Generative_Ph/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2025-11-11T15-41-29/checkpoints/checkpoint-step-63462.ckpt"
+#JPEG ckpt
+#camera_adaptor_ckpt: "/data/songhune/mario340/generative-photography/output/genphoto_model_focal_length/adv3_256_384_genphoto_relora_focal_length-2026-05-07T17-47-00/checkpoints/checkpoint-step-63460.ckpt"
+#RAW ckpt
+#camera_adaptor_ckpt: "/data/songhune/mario340/generative-photography/output/checkpoint-step-63462.ckpt"
+#Genphoto
+camera_adaptor_ckpt: "/data/songhune/mario340/generative-photography/generative_photography/weights/checkpoint-focal_length.ckpt"
 lora_rank: 2
 lora_scale: 1.0
-lora_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/RealEstate10K_LoRA.ckpt"
-motion_module_ckpt: "/home/work/Hwang/Generative_Ph/generative_photography/weights/v3_sd15_mm.ckpt"
+lora_ckpt: "/data/songhune/mario340/generative-photography/generative_photography/weights/RealEstate10K_LoRA.ckpt"
+motion_module_ckpt: "/data/songhune/mario340/generative-photography/generative_photography/weights/v3_sd15_mm.ckpt"
 motion_lora_rank: 0
 motion_lora_scale: 1.0
 

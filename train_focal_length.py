@@ -419,12 +419,15 @@ def main(name: str,
         torch.save(state_dict, os.path.join(save_path, f"checkpoint-step-{step}.ckpt"))
         logger.info(f"Saved state to {save_path} (global_step: {step})")
 
-    for epoch in range(first_epoch, num_train_epochs):
+    # 2026.5.7 임시조치
+    for epoch in range(first_epoch, first_epoch+1):#num_train_epochs):
         train_dataloader.sampler.set_epoch(epoch)
         camera_adaptor.train()
 
         data_iter = iter(train_dataloader)
-        for step in range(trained_iterations, len(train_dataloader)):
+        # 2026.5.7 임시조치
+        # for step in range(trained_iterations, len(train_dataloader)):
+        for step in range(trained_iterations, len(train_dataloader)+trained_iterations):
 
             print(f"[STEP {step}] start") # 수정
             iter_start_time = time.time()
@@ -611,7 +614,6 @@ def main(name: str,
                 if is_main_process:
                     save_checkpoint(global_step)
                 break
-
     dist.destroy_process_group()
 
 
@@ -626,3 +628,6 @@ if __name__ == "__main__":
     config = OmegaConf.load(args.config)
 
     main(name=name, launcher=args.launcher, port=args.port, **config)
+
+# example for training bokeh rendering
+# python -m torch.distributed.launch --nproc_per_node=1 --use_env train_focal_length.py --config configs/train_genphoto/adv3_256_384_genphoto_relora_focal_length.yaml

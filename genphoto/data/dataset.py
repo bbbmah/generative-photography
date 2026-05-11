@@ -16,7 +16,7 @@ from einops import rearrange
 from transformers import pipeline, CLIPTextModel, CLIPTokenizer
 
 import sys
-sys.path.append('/home/work/Hwang/Generative_Ph/generative-photography/genphoto/data/BokehMe/')
+sys.path.append('/data/songhune/mario340/generative-photography/genphoto/data/BokehMe')
 from classical_renderer.scatter import ModuleRenderScatter  
 
 
@@ -315,8 +315,8 @@ class CameraFocalLength(Dataset):
 
         self.pixel_transforms = pixel_transforms
         self.is_Train = is_Train
-        self.tokenizer = CLIPTokenizer.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="tokenizer")
-        self.text_encoder = CLIPTextModel.from_pretrained("/home/work/Hwang/Generative_Ph/generative_photography/stable-diffusion-v1-5/", subfolder="text_encoder")
+        self.tokenizer = CLIPTokenizer.from_pretrained("/data/songhune/mario340/generative-photography/generative_photography/stable-diffusion-v1-5", subfolder="tokenizer")
+        self.text_encoder = CLIPTextModel.from_pretrained("/data/songhune/mario340/generative-photography/generative_photography/stable-diffusion-v1-5", subfolder="text_encoder")
 
         # RAW 파일을 현상할 때 사용하는 기본 파라미터값
         default_raw_params = {
